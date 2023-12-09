@@ -77,7 +77,7 @@ jobs:
           docker buildx build --push \
             --build-arg TERRARIAVERSION=${{ steps.get_terraria_release.outputs.latest_terraria }} \
             --build-arg TERRARIAVERSIONFIX=${{ steps.get_terraria_release.outputs.latest_terraria_fix }} \
-            --build-arg TSHOCKVERSION=${{ steps.get_terraria_release.outputs.latest_tshock }} \
+            --build-arg TSHOCKVERSION=${{ steps.get_tshock_release.outputs.latest_tshock }} \
             --provenance=false \
             --platform linux/amd64 \
             --tag ${{ secrets.DOCKER_USERNAME }}/terraria-docker:${{ steps.get_latest_release_tag.outputs.latest_tag }} \
