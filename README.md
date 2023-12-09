@@ -11,7 +11,6 @@ Setup guide is also in the [Wiki](https://github.com/PassiveLemon/terraria-docke
 
 # Quick setup
 1. Setup a directory for you server files. Can be something like `/opt/TerrariaServer/` or `C:\TerrariaServer\`.
-2. Add your modpack to the previous directory in the sub-directory `ModPacks/`
 3. Run the container: <b>(Make sure to modify any values that you need.)</b>
   - ```docker run -d --name terraria -p 7777:7777/tcp -v /opt/TerrariaServer/:/opt/terraria/config/ -e WORLD=superworld passivelemon/terraria-docker:latest```
 4. Set up port forwarding.
@@ -58,7 +57,7 @@ Journey mode variables are not supported in the Dockerfile variable statements. 
 # 3. Worlds
 <b> If you want to continue on an existing world, follow this step. Otherwise, just skip it. The server will generate a new world automatically.</b>
 
-If you provide a world file and correctly set the `WORLDNAME` variable, it will use the existing world. Make sure that the mods used on the world are the same as the ones in your modpack or else you may risk some world corruption. </br>
+If you provide a world file and correctly set the `WORLDNAME` variable, it will use the existing world. </br>
 
 1. Go to `C:\Users\(user)\Documents\My Games\Terraria\Worlds\` or the Linux equivalent, usually `/home/(user)/.local/share/Terraria/Worlds/`. </br>
 2. Copy the files of the world of your choice to `(ConfDir)/Worlds/`. The world files look like `.wld`. </br>
@@ -97,7 +96,7 @@ services:
 | `-d` | Yes | Will run the container in the background. |
 | `--name (container name)` | No | Sets the name of the container to the following string. You can change this to whatever you want. |
 | `-p 7777:7777` | Yes | The default port used by the server. This translates from your host 7777 into the container 7777. <br><b>If you use a different port for your server in your serverconfig, change this.</b></br> |
-| `-v (ConfDir):/opt/terraria/config` | Yes | Sets the folder that holds the configs like your modpack, worlds, and serverconfig.txt. This should be the place you just chose. |
+| `-v (ConfDir):/opt/terraria/config` | Yes | Sets the folder that holds the configs like your worlds and serverconfig.txt. This should be the place you just chose. |
 | `passivelemon/terraria-docker:latest` | Yes | The repository on Docker hub. By default, it is the latest version that I have published. |
 
 | Tag | Purpose |
@@ -165,8 +164,6 @@ In order to access the server, you will need the public IP of the host. This cou
 - <b>NOTE:</b> It isn't recommended to use this as it gives users your general location. It may be the only option you have though so be careful. </br>
 
 You will also need a port. If you didn't change the defaults, it will just be 7777. If you did change from defaults, it will be whatever port you set as your external port in your router. </br>
-
-The server should automatically force users to download whatever mods the server has loaded. </br>
 
 Have fun! </br>
 
