@@ -10,7 +10,6 @@ RUN apk add --no-cache bash grep curl unzip icu-dev tmux jq netcat-openbsd
 RUN apk add --no-cache openssl=3.1.4-r1
 
 RUN mkdir -p /opt/terraria/server/ &&\
-    mkdir -p /opt/terraria/config/ModPacks &&\
     mkdir -p /opt/terraria/config/Worlds
 
 COPY entrypoint.sh /opt/terraria/
