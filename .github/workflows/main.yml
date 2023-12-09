@@ -13,17 +13,10 @@ jobs:
         with:
           ref: ${{ github.event.release.tag_name }}
 
-      - name: Get latest release tag
-        id: get_latest_release_tag
-        run: |
-          LATEST=$(curl -s https://api.github.com/repos/passivelemon/terraria-docker/releases | jq -r "[.[] | select(.tag_name)] | max_by(.created_at) | .tag_name" | awk '{gsub(/^v/, ""); print}')
-          echo "Latest release is ${LATEST}"
-          echo "latest_tag=$LATEST" >> "$GITHUB_OUTPUT"
-
       - name: Get terraria release
         id: get_terraria_release
         run: |
-          TERRARIA=$(echo "${{ steps.get_latest_release_tag.outputs.latest_tag }}" | awk -F'-' '{print $1}')
+          TERRARIA=$(echo "${{ github.event.release.tag_name }}" | awk -F'-' '{print $1}')
           TERRARIAFIX=$(echo \"$TERRARIA\" | jq 'gsub("\\."; "")')
           echo "Latest terraria release is ${TERRARIA}"
           echo "latest_terraria=$TERRARIA" >> "$GITHUB_OUTPUT"
@@ -32,19 +25,19 @@ jobs:
       - name: Get tshock release
         id: get_tshock_release
         run: |
-          TSHOCK=$(echo ${{ steps.get_latest_release_tag.outputs.latest_tag }} | awk -F'-' '{print $2}')
+          TSHOCK=$(echo ${{ github.event.release.tag_name }} | awk -F'-' '{print $2}')
           echo "Latest tshock release is ${TSHOCK}"
           echo "latest_tshock=$TSHOCK" >> "$GITHUB_OUTPUT"
 
       - name: Check if version already exists
         run: |
-          CHECK=$(curl -s "https://hub.docker.com/v2/repositories/passivelemon/terraria-docker/tags/${{ steps.get_latest_release_tag.outputs.latest_tag }}")
+          CHECK=$(curl -s "https://hub.docker.com/v2/repositories/passivelemon/terraria-docker/tags/${{ github.event.release.tag_name }}")
           echo $CHECK
           if echo "${CHECK}" | jq -e ".digest" > /dev/null; then
-            echo "Version ${{ steps.get_latest_release_tag.outputs.latest_tag }} already exists. Stopping..."
+            echo "Version ${{ github.event.release.tag_name }} already exists. Stopping..."
             exit 1
           fi
-          echo "Version ${{ steps.get_latest_release_tag.outputs.latest_tag }} does not already exist. Continuing..."
+          echo "Version ${{ github.event.release.tag_name }} does not already exist. Continuing..."
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -80,8 +73,8 @@ jobs:
             --build-arg TSHOCKVERSION=${{ steps.get_tshock_release.outputs.latest_tshock }} \
             --provenance=false \
             --platform linux/amd64 \
-            --tag ${{ secrets.DOCKER_USERNAME }}/terraria-docker:${{ steps.get_latest_release_tag.outputs.latest_tag }} \
+            --tag ${{ secrets.DOCKER_USERNAME }}/terraria-docker:${{ github.event.release.tag_name }} \
             --tag ${{ secrets.DOCKER_USERNAME }}/terraria-docker:terraria-tshock \
-            --tag ghcr.io/${{ secrets.GHCR_USERNAME }}/terraria-docker:${{ steps.get_latest_release_tag.outputs.latest_tag }} \
+            --tag ghcr.io/${{ secrets.GHCR_USERNAME }}/terraria-docker:${{ github.event.release.tag_name }} \
             --tag ghcr.io/${{ secrets.GHCR_USERNAME }}/terraria-docker:terraria-tshock \
             .
