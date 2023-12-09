@@ -23,7 +23,7 @@ jobs:
       - name: Get terraria release
         id: get_terraria_release
         run: |
-          TERRARIA=$(echo "${{ steps.get_latest_release_tag.outputs.latest_tag }}" | awk -F'-' '{print $1}')
+          TERRARIA=$(echo "${{ steps.get_latest_release_tag.outputs.latest_tag }}" | cut -d'-' -f1)
           TERRARIAFIX=$(echo $TERRARIA | jq 'gsub("\\."; "")')
           echo "Latest terraria release is ${TERRARIA}"
           echo "latest_terraria=$TERRARIA" >> "$GITHUB_OUTPUT"
@@ -32,7 +32,7 @@ jobs:
       - name: Get tshock release
         id: get_tshock_release
         run: |
-          TSHOCK=$(echo ${{ steps.get_latest_release_tag.outputs.latest_tag }} | awk -F'-' '{print $2}')
+          TSHOCK=$(echo ${{ steps.get_latest_release_tag.outputs.latest_tag }} | cut -d'-' -f2)
           echo "Latest tshock release is ${TSHOCK}"
           echo "latest_tshock=$TSHOCK" >> "$GITHUB_OUTPUT"
 
