@@ -1,0 +1,87 @@
+name: Image Publisher
+
+on:
+  release:
+    types: [ published ]
+
+jobs:
+  setup-build-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Get latest release tag
+        id: get_latest_release_tag
+        run: |
+          LATEST=$(curl -s https://api.github.com/repos/passivelemon/terraria-docker/releases | jq -r "[.[] | select(.tag_name)] | max_by(.created_at) | .tag_name" | awk '{gsub(/^v/, ""); print}')
+          echo "Latest release is ${LATEST}"
+          echo "latest_tag=$LATEST" >> "$GITHUB_OUTPUT"
+
+      - name: Get terraria release
+        id: get_terraria_release
+        run: |
+          TERRARIA=$(echo ${{ steps.get_latest_release_tag.outputs.latest_tag }} | awk -F'-' '{print $1}')
+          TERRARIAFIX=$(echo $TERRARIA | jq 'gsub("\\."; ""))
+          echo "Latest terraria release is ${TERRARIA}"
+          echo "latest_terraria=$TERRARIA" >> "$GITHUB_OUTPUT"
+          echo "latest_terraria_fix=$TERRARIAFIX" >> "$GITHUB_OUTPUT"
+
+      - name: Get tshock release
+        id: get_tshock_release
+        run: |
+          TSHOCK=$(echo ${{ steps.get_latest_release_tag.outputs.latest_tag }} | awk -F'-' '{print $2}')
+          echo "Latest tshock release is ${TSHOCK}"
+          echo "latest_tshock=$TSHOCK" >> "$GITHUB_OUTPUT"
+
+      - name: Check if version already exists
+        run: |
+          CHECK=$(curl -s "https://hub.docker.com/v2/repositories/passivelemon/terraria-docker/tags/${{ steps.get_latest_release_tag.outputs.latest_tag }}")
+          echo $CHECK
+          if echo "${CHECK}" | jq -e ".digest" > /dev/null; then
+            echo "Version ${{ steps.get_latest_release_tag.outputs.latest_tag }} already exists. Stopping..."
+            exit 1
+          fi
+          echo "Version ${{ steps.get_latest_release_tag.outputs.latest_tag }} does not already exist. Continuing..."
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker & GHCR
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          echo "${{ secrets.GHCR_PASSWORD }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+
+      - name: Build the image
+        run: |
+          docker buildx create --name mainbuilder --driver docker-container --platform linux/amd64 --use
+          
+          docker buildx build --push \
+            --build-arg TERRARIAVERSION=${{ steps.get_terraria_release.outputs.latest_terraria }} \
+            --build-arg TERRARIAVERSIONFIX=${{ steps.get_terraria_release.outputs.latest_terraria_fix }} \
+            --provenance=false \
+            --platform linux/amd64 \
+            --tag ${{ secrets.DOCKER_USERNAME }}/terraria-docker:${{ steps.get_terraria_release.outputs.latest_terraria }} \
+            --tag ${{ secrets.DOCKER_USERNAME }}/terraria-docker:terraria \
+            --tag ${{ secrets.DOCKER_USERNAME }}/terraria-docker:latest \
+            --tag ghcr.io/${{ secrets.GHCR_USERNAME }}/terraria-docker:${{ steps.get_terraria_release.outputs.latest_terraria }} \
+            --tag ghcr.io/${{ secrets.GHCR_USERNAME }}/terraria-docker:terraria \
+            --tag ghcr.io/${{ secrets.GHCR_USERNAME }}/terraria-docker:latest \
+            .
+
+          docker buildx build --push \
+            --build-arg TERRARIAVERSION=${{ steps.get_terraria_release.outputs.latest_terraria }} \
+            --build-arg TERRARIAVERSIONFIX=${{ steps.get_terraria_release.outputs.latest_terraria_fix }} \
+            --build-arg TSHOCKVERSION=${{ steps.get_terraria_release.outputs.latest_tshock }} \
+            --provenance=false \
+            --platform linux/amd64 \
+            --tag ${{ secrets.DOCKER_USERNAME }}/terraria-docker:${{ steps.get_latest_release_tag.outputs.latest_tag }} \
+            --tag ${{ secrets.DOCKER_USERNAME }}/terraria-docker:terraria-tshock \
+            --tag ghcr.io/${{ secrets.GHCR_USERNAME }}/terraria-docker:${{ steps.get_latest_release_tag.outputs.latest_tag }} \
+            --tag ghcr.io/${{ secrets.GHCR_USERNAME }}/terraria-docker:terraria-tshock \
+            .
