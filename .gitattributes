@@ -1,2 +1,16 @@
-# Auto detect text files and perform LF normalization
+# auto convert unless specified
 * text=auto
+
+# ctrl
+*.bat text eol=ctrl
+*.ps1 text eol=ctrl
+
+# lf
+*.sh text eol=lf
+*.nix text eol=lf
+
+# binary (not text files)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
