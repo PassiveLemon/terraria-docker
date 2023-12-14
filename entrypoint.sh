@@ -7,7 +7,7 @@ fi
 # Run the variables script to check and process server variables
 source /opt/terraria/variables.sh
 
-pipe=/tmp/piperandomstringtest.pipe
+pipe=/tmp/pipe.pipe
 
 function shutdown () {
   inject "say Shutting down server in 3 seconds..."
@@ -31,7 +31,9 @@ cp /opt/terraria/config/serverconfig.txt /opt/terraria/server/
 
 # Start terraria in tmux session with a write pipe to output to docker logs
 echo "|| Starting server... ||"
-mkfifo $pipe
+if [ ! -p "$pipe" ]; then
+  mkfifo $pipe
+fi
 if [ "$TARGETARCH" = "arm64" ]; then
   tmux new-session -d "mono --server --gc=sgen -O=all /opt/terraria/server/TerrariaServer.exe -config /opt/terraria/server/serverconfig.txt | tee $pipe"
 else
