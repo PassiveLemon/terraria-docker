@@ -6,8 +6,6 @@ ARG TERRARIAVERSIONFIX
 ARG TSHOCKVERSION
 
 RUN apk add --no-cache bash grep curl unzip icu-dev tmux jq netcat-openbsd
-# Alternatives for security
-RUN apk add --no-cache openssl=3.1.4-r1
 
 # Mono
 RUN apk add --no-cache mono --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing && \
