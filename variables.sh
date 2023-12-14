@@ -31,7 +31,7 @@ if [ ${SERVERCONFIG} = "0" ]; then
   if [ -e /opt/terraria/config/serverconfig.txt ]; then
     rm /opt/terraria/config/serverconfig.txt
   fi
-  for argument in $AUTOCREATEx $DIFFICULTYx $BANLISTx $LANGUAGEx $MAXPLAYERSx $MOTDx $NPCSTREAMx $PASSWORDx $PORTx $PRIORITYx $SEEDx $SECUREx $UPNPx $WORLDNAMEx $WORLDx $MODPACKx $MODPATHx; do
+  for argument in $AUTOCREATEx $DIFFICULTYx $BANLISTx $LANGUAGEx $MAXPLAYERSx $MOTDx $NPCSTREAMx $PASSWORDx $PORTx $PRIORITYx $SEEDx $SECUREx $UPNPx $WORLDNAMEx $WORLDx; do
     echo $argument >> serverconfig.txt
   done
 fi
