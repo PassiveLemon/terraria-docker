@@ -7,7 +7,7 @@ fi
 # Run the variables script to check and process server variables
 source /opt/terraria/variables.sh
 
-pipe=/tmp/pipe.pipe
+pipe=/tmp/piperandomstringtest.pipe
 
 function shutdown () {
   inject "say Shutting down server in 3 seconds..."
