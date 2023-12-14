@@ -1,4 +1,4 @@
-FROM docker.io/alpine:latest
+FROM docker.io/frolvlad/alpine-glibc:latest
 ARG TARGETARCH
 # These come from the workflow --build-args
 ARG TERRARIAVERSION
@@ -6,6 +6,9 @@ ARG TERRARIAVERSIONFIX
 ARG TSHOCKVERSION
 
 RUN apk add --no-cache bash grep curl unzip icu-dev tmux jq netcat-openbsd
+
+# Mono
+RUN if [ "$TARGETARCH" = "arm64" ]; then apk add --no-cache mono --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing; fi
 
 RUN mkdir -p /opt/terraria/server/ &&\
     mkdir -p /opt/terraria/config/Worlds

@@ -9,6 +9,7 @@ source /opt/terraria/variables.sh
 
 pipe=/tmp/pipe.pipe
 
+# Shutdown function to send the notice, signal, and ensure its shutdown before exiting
 function shutdown () {
   inject "say Shutting down server in 3 seconds..."
   sleep 3s
@@ -29,7 +30,7 @@ if [ -e "/opt/terraria/server/serverconfig.txt" ]; then
 fi
 cp /opt/terraria/config/serverconfig.txt /opt/terraria/server/
 
-# Start terraria in tmux session with a write pipe to output to docker logs
+# Start terraria in tmux session (depending on arch) with a write pipe to output to docker logs
 echo "|| Starting server... ||"
 if [ ! -p "$pipe" ]; then
   mkfifo $pipe
