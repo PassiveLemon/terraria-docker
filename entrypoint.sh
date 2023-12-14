@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-echo "Terraria version $TERRARIAVERSION"
+echo "Terraria version $TERRARIAVERSION on $TARGETARCH"
 if [ "x{$TSHOCKVERSION}" != "x" ]; then
   echo "TShock version $TSHOCKVERSION"
 fi
@@ -32,7 +32,11 @@ cp /opt/terraria/config/serverconfig.txt /opt/terraria/server/
 # Start terraria in tmux session with a write pipe to output to docker logs
 echo "|| Starting server... ||"
 mkfifo $pipe
-tmux new-session -d "/opt/terraria/server/TerrariaServer -config /opt/terraria/server/serverconfig.txt | tee $pipe"
+if [ "$TARGETARCH" = "arm64"]; then
+  tmux new-session -d "mono --server --gc=sgen -O=all /opt/terraria/server/TerrariaServer.exe -config /opt/terraria/server/serverconfig.txt | tee $pipe"
+else
+  tmux new-session -d "/opt/terraria/server/TerrariaServer -config /opt/terraria/server/serverconfig.txt | tee $pipe"
+fi
 
 # Sometimes the server doesn't start immediately and hangs. This basically just pokes it into starting.
 inject "poke"

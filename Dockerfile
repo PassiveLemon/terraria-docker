@@ -1,11 +1,11 @@
 FROM docker.io/frolvlad/alpine-glibc:latest
-# VERSION comes from the workflow --build-args
-# VERSIONFIX is VERSION without periods so it can be used in the URL
+ARG TARGETARCH
+# These come from the workflow --build-args
 ARG TERRARIAVERSION
 ARG TERRARIAVERSIONFIX
 ARG TSHOCKVERSION
 
-RUN apk add --no-cache bash grep curl unzip icu-dev tmux jq netcat-openbsd
+RUN apk add --no-cache bash grep curl unzip icu-dev tmux jq mono netcat-openbsd
 # Alternatives for security
 RUN apk add --no-cache openssl=3.1.4-r1
 
@@ -29,6 +29,7 @@ RUN unzip -jo ./Terraria.zip "${TERRARIAVERSIONFIX}/Linux/*" &&\
 
 RUN chmod +x ./TerrariaServer*
 
+ENV TARGETARCH=$TARGETARCH
 ENV TERRARIAVERSION=$TERRARIAVERSION
 ENV TSHOCKVERSION=$TSHOCKVERSION
 
@@ -51,4 +52,4 @@ ENV WORLDNAME="World"
 
 ENTRYPOINT ["/opt/terraria/entrypoint.sh"]
 
-HEALTHCHECK --interval=5s --timeout=5s --retries=2 CMD nc -vz 127.0.0.1 7777 || exit 1
+HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 CMD nc -vz 127.0.0.1 7777 || exit 1

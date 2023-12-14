@@ -52,13 +52,13 @@ jobs:
 
       - name: Build the image
         run: |
-          docker buildx create --name mainbuilder --driver docker-container --platform linux/amd64 --use
+          docker buildx create --name mainbuilder --driver docker-container --platform linux/amd64,linux/arm64 --use
           
           docker buildx build --push \
             --build-arg TERRARIAVERSION=${{ steps.get_terraria_release.outputs.latest_terraria }} \
             --build-arg TERRARIAVERSIONFIX=${{ steps.get_terraria_release.outputs.latest_terraria_fix }} \
             --provenance=false \
-            --platform linux/amd64 \
+            --platform linux/amd64,linux/arm64 \
             --tag ${{ secrets.DOCKER_USERNAME }}/terraria-docker:${{ steps.get_terraria_release.outputs.latest_terraria }} \
             --tag ${{ secrets.DOCKER_USERNAME }}/terraria-docker:terraria \
             --tag ${{ secrets.DOCKER_USERNAME }}/terraria-docker:latest \
@@ -72,7 +72,7 @@ jobs:
             --build-arg TERRARIAVERSIONFIX=${{ steps.get_terraria_release.outputs.latest_terraria_fix }} \
             --build-arg TSHOCKVERSION=${{ steps.get_tshock_release.outputs.latest_tshock }} \
             --provenance=false \
-            --platform linux/amd64 \
+            --platform linux/amd64,linux/arm64 \
             --tag ${{ secrets.DOCKER_USERNAME }}/terraria-docker:${{ github.event.release.tag_name }} \
             --tag ${{ secrets.DOCKER_USERNAME }}/terraria-docker:terraria-tshock \
             --tag ghcr.io/${{ secrets.GHCR_USERNAME }}/terraria-docker:${{ github.event.release.tag_name }} \
