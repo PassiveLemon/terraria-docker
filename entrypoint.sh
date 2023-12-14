@@ -32,7 +32,7 @@ cp /opt/terraria/config/serverconfig.txt /opt/terraria/server/
 # Start terraria in tmux session with a write pipe to output to docker logs
 echo "|| Starting server... ||"
 mkfifo $pipe
-if [ "$TARGETARCH" = "arm64"]; then
+if [ "$TARGETARCH" = "arm64" ]; then
   tmux new-session -d "mono --server --gc=sgen -O=all /opt/terraria/server/TerrariaServer.exe -config /opt/terraria/server/serverconfig.txt | tee $pipe"
 else
   tmux new-session -d "/opt/terraria/server/TerrariaServer -config /opt/terraria/server/serverconfig.txt | tee $pipe"
