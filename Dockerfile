@@ -1,4 +1,4 @@
-FROM docker.io/frolvlad/alpine-mono:latest
+FROM docker.io/alpine:latest
 ARG TARGETARCH
 # These come from the workflow --build-args
 ARG TERRARIAVERSION
@@ -8,6 +8,12 @@ ARG TSHOCKVERSION
 RUN apk add --no-cache bash grep curl unzip icu-dev tmux jq netcat-openbsd
 # Alternatives for security
 RUN apk add --no-cache openssl=3.1.4-r1
+
+# Mono
+RUN apk add --no-cache mono --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing && \
+    apk add --no-cache --virtual=.build-dependencies ca-certificates && \
+    cert-sync /etc/ssl/certs/ca-certificates.crt && \
+    apk del .build-dependencies
 
 RUN mkdir -p /opt/terraria/server/ &&\
     mkdir -p /opt/terraria/config/Worlds
