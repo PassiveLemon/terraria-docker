@@ -1,11 +1,11 @@
-FROM docker.io/frolvlad/alpine-glibc:latest
+FROM docker.io/frolvlad/alpine-mono:latest
 ARG TARGETARCH
 # These come from the workflow --build-args
 ARG TERRARIAVERSION
 ARG TERRARIAVERSIONFIX
 ARG TSHOCKVERSION
 
-RUN apk add --no-cache bash grep curl unzip icu-dev tmux jq mono netcat-openbsd
+RUN apk add --no-cache bash grep curl unzip icu-dev tmux jq netcat-openbsd
 # Alternatives for security
 RUN apk add --no-cache openssl=3.1.4-r1
 
