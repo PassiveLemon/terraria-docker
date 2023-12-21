@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 echo "Terraria version $TERRARIAVERSION on $TARGETARCH"
-if [ "x{$TSHOCKVERSION}" != "x" ]; then
+if [ "$TSHOCKVERSION" != "NA" ]; then
   echo "TShock version $TSHOCKVERSION"
 fi
 
