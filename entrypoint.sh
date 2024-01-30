@@ -42,7 +42,7 @@ else
 fi
 
 # Sometimes the server doesn't start immediately and hangs. This basically just pokes it into starting.
-inject "poke"
+inject "help"
 
 # Read out pipe to display in docker logs
 cat $pipe &
