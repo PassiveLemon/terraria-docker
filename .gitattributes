@@ -1,16 +1,5 @@
-# auto convert unless specified
+# Auto convert unless specified
 * text=auto
 
-# ctrl
-*.bat text eol=ctrl
-*.ps1 text eol=ctrl
-
-# lf
+# LF
 *.sh text eol=lf
-*.nix text eol=lf
-
-# binary (not text files)
-*.png binary
-*.jpg binary
-*.jpeg binary
-*.webp binary
