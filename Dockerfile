@@ -3,7 +3,6 @@ ARG TARGETARCH
 # These come from the workflow --build-args
 ARG TERRARIAVERSION
 ARG TERRARIAVERSIONFIX
-ARG TSHOCKVERSION
 
 RUN apk add --no-cache bash grep curl unzip icu-dev tmux jq netcat-openbsd
 
@@ -23,16 +22,14 @@ RUN chmod -R 755 /opt/terraria/ &&\
 
 WORKDIR /opt/terraria/server/
 
-RUN curl -Lo ./Terraria.zip https://terraria.org/api/download/pc-dedicated-server/terraria-server-${TERRARIAVERSIONFIX}.zip
-
-RUN unzip -jo ./Terraria.zip "${TERRARIAVERSIONFIX}/Linux/*" &&\
+RUN curl -Lo ./Terraria.zip https://terraria.org/api/download/pc-dedicated-server/terraria-server-${TERRARIAVERSIONFIX}.zip &&\
+    unzip -jo ./Terraria.zip "${TERRARIAVERSIONFIX}/Linux/*" &&\
     rm ./Terraria.zip
 
 RUN chmod +x ./TerrariaServer*
 
 ENV TARGETARCH=$TARGETARCH
 ENV TERRARIAVERSION=$TERRARIAVERSION
-ENV TSHOCKVERSION=$TSHOCKVERSION
 
 ENV SERVERCONFIG="0"
 

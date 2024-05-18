@@ -10,7 +10,7 @@ Docker container for a Terraria dedicated server
 Setup guide is also in the [Wiki](https://github.com/PassiveLemon/terraria-docker/wiki) for organization. </br>
 
 # Quick setup
-1. Setup a directory for you server files. Can be something like `/opt/TerrariaServer/` or `C:\TerrariaServer\`.
+1. Setup a directory for you server files. Can be something like `/opt/TerrariaServer/`(Linux) or `C:\TerrariaServer\`(Windows).
 3. Run the container: <b>(Make sure to modify any values that you need.)</b>
   - ```docker run -d --name terraria -p 7777:7777/tcp -v /opt/TerrariaServer/:/opt/terraria/config/ -e WORLD=superworld passivelemon/terraria-docker:latest```
 4. Set up port forwarding.
@@ -26,7 +26,7 @@ For every variable you want the server to use, add that variable to your docker 
 ### Container variables </br>
 | Variable | Options | Default | Details
 |:-|:-|:-|:-|
-SERVERCONFIG | `boolean` | `0` | Toggles whether the server will use a user provided serverconfig file. `0` to use environment variables and `1` for provided file. 
+SERVERCONFIG | `boolean` | `0` | Toggles whether the server will use a user provided serverconfig file. `0` to use environment variables and `1` for provided file.
 
 Check out server details and examples [here on the wiki](https://terraria.fandom.com/wiki/Server#Server_config_file). </br>
 
@@ -67,10 +67,10 @@ If you provide a world file and correctly set the `WORLDNAME` variable, it will 
 
 The root of the terraria server files in the container is `/opt/terraria/server/` and user items in `(ConfDir)` are mounted at `/opt/terraria/config/` </br>
 
-1. Set `SERVERCONFIG` to 1. 
+1. Set `SERVERCONFIG` to 1.
 2. Put the `serverconfig.txt` into `(ConfDir)/`.
 
-[Server configuration details on the Terraria Wiki](https://terraria.fandom.com/wiki/Server#Server_config_file) </br>
+[Server configuration details on the Terraria Wiki](https://terraria.wiki.gg/wiki/Server#Command-line_parameters) </br>
 
 # 6. Docker container
 ### Docker run </br>
@@ -99,11 +99,6 @@ services:
 | `-v (ConfDir):/opt/terraria/config` | Yes | Sets the folder that holds the configs like your worlds and serverconfig.txt. This should be the place you just chose. |
 | `passivelemon/terraria-docker:latest` | Yes | The repository on Docker hub. By default, it is the latest version that I have published. |
 
-| Tag | Purpose |
-| :- | :- |
-| `latest` | The latest standard release. |
-| `terraria` | The latest standard release. |
-| `terraria-tshock` | The latest release of Terraria with Tshock. CURRENTLY TSHOCK IS NOT IMPLEMENTED. |
 
 ## Examples </br>
 ### Docker run
