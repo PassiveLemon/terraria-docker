@@ -2,8 +2,10 @@ name: Update Description
 
 on:
   push:
+    branches:
+      - "*"
     paths:
-      - 'README.md'
+      - README.md
 
 jobs:
   docker-description:
@@ -11,12 +13,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
+          username: passivelemon
           password: ${{ secrets.DOCKER_PASSWORD }}
-          repository: ${{ secrets.DOCKER_USERNAME }}/terraria-docker
+          repository: passivelemon/terraria-docker
           short-description: ${{ github.event.repository.description }}
 
