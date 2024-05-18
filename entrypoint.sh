@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
-echo "Terraria version $TERRARIAVERSION on $TARGETARCH"
-if [ "$TSHOCKVERSION" != "NA" ]; then
-  echo "TShock version $TSHOCKVERSION"
-fi
+echo "Terraria version: $TERRARIAVERSION on $TARGETARCH"
 
 # Run the variables script to check and process server variables
 source /opt/terraria/variables.sh
