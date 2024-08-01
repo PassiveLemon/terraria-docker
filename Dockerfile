@@ -12,9 +12,9 @@ RUN if [ "$TARGETARCH" = "arm64" ]; then apk add --no-cache mono --repository ht
 RUN mkdir -p /opt/terraria/server/ &&\
     mkdir -p /opt/terraria/config/Worlds
 
-COPY entrypoint.sh /opt/terraria/
-COPY variables.sh /opt/terraria/
-COPY inject.sh /usr/local/bin/inject
+COPY scripts/entrypoint.sh /opt/terraria/
+COPY scripts/variables.sh /opt/terraria/
+COPY scripts/inject.sh /usr/local/bin/inject
 
 RUN chmod -R 755 /opt/terraria/ &&\
     chmod +x /opt/terraria/entrypoint.sh &&\
