@@ -16,7 +16,7 @@ jobs:
       - name: Get terraria release
         id: get_terraria_release
         run: |
-          TERRARIA=$(echo "${{ github.event.release.tag_name }}" | awk -F'-' '{print $1}')
+          TERRARIA="${{ github.event.release.tag_name }}"
           TERRARIAFIX=$(echo \"$TERRARIA\" | jq 'gsub("\\."; "")')
           echo "Latest terraria release is ${TERRARIA}." >> "$GITHUB_STEP_SUMMARY"
           echo "latest_terraria=$TERRARIA" >> "$GITHUB_OUTPUT"
@@ -45,7 +45,7 @@ jobs:
 
       - name: Build the image
         run: |
-          docker buildx create --name mainbuilder --driver docker-container --platform linux/amd64,linux/arm64 --use
+          docker buildx create --name mainbuilder --driver docker-container --platform linux/amd64 --use
 
           docker buildx build --push \
             --build-arg TERRARIAVERSION=${{ steps.get_terraria_release.outputs.latest_terraria }} \
