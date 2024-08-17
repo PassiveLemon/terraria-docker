@@ -57,3 +57,4 @@ jobs:
             --tag ghcr.io/passivelemon/terraria-docker:${{ steps.get_terraria_release.outputs.latest_terraria }} \
             --tag ghcr.io/passivelemon/terraria-docker:latest \
             .
+

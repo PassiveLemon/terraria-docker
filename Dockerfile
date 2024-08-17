@@ -1,10 +1,11 @@
-FROM docker.io/frolvlad/alpine-glibc:latest
+FROM docker.io/debian:latest
 ARG TARGETARCH
 # These come from the workflow --build-args
 ARG TERRARIAVERSION
 ARG TERRARIAVERSIONFIX
 
-RUN apk add --no-cache bash grep curl unzip icu-dev tmux jq netcat-openbsd
+RUN apt-get update -y &&\
+    apt-get install -y bash grep curl unzip libicu-dev tmux jq netcat-openbsd
 
 # Mono
 RUN if [ "$TARGETARCH" = "arm64" ]; then apk add --no-cache mono --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing; fi
@@ -51,3 +52,4 @@ ENV WORLDNAME="World"
 ENTRYPOINT ["/opt/terraria/entrypoint.sh"]
 
 HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 CMD nc -vz 127.0.0.1 7777 || exit 1
+
