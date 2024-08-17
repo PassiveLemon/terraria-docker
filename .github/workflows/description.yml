@@ -3,9 +3,9 @@ name: Update Description
 on:
   push:
     branches:
-      - "*"
+      - 'master'
     paths:
-      - README.md
+      - 'README.md'
 
 jobs:
   docker-description:

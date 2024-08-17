@@ -1,4 +1,4 @@
-name: Image Publisher
+name: Release Publish
 
 on:
   release:
@@ -21,16 +21,6 @@ jobs:
           echo "Latest terraria release is ${TERRARIA}." >> "$GITHUB_STEP_SUMMARY"
           echo "latest_terraria=$TERRARIA" >> "$GITHUB_OUTPUT"
           echo "latest_terraria_fix=$TERRARIAFIX" >> "$GITHUB_OUTPUT"
-
-      - name: Check if version is already published
-        run: |
-          CHECK=$(curl -s "https://hub.docker.com/v2/repositories/passivelemon/terraria-docker/tags/${{ github.event.release.tag_name }}")
-          echo $CHECK
-          if echo "${CHECK}" | jq -e ".digest" > /dev/null; then
-            echo "Version ${{ github.event.release.tag_name }} is already published." >> "$GITHUB_STEP_SUMMARY"
-            exit 1
-          fi
-          echo "Version ${{ github.event.release.tag_name }} is not already published." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
