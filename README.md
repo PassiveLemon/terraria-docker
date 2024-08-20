@@ -41,12 +41,12 @@ MAXPLAYERS | `integer` | `8`
 MOTD | `string` | `NA`
 NPCSTREAM | `integer 0-60` | `15`
 PASSWORD | `string` | `NA`
+PORT | `integer` | `7777`
 PRIORITY | `0` `1` `2` `3` `4` `5` | `1`
 SECURE | `boolean` | `1`
 SEED | `string` | `NA`
 UPNP | `boolean` | `0`
 WORLDNAME | `string` | `World`
- - Note: The internal port is not changeable.
 
 Journey mode variables are not supported in the Dockerfile variable statements. Those will need to be manually put in the server config. </br>
 
@@ -164,3 +164,4 @@ Have fun! </br>
 
 # Credits
 [rfvgyhn](https://github.com/rfvgyhn/tmodloader-docker) for the server injection functionality.
+

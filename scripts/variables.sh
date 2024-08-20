@@ -15,7 +15,9 @@ VAR_ARRAY[NPCSTREAMx]="npcstream=${NPCSTREAM}"
 if [ "$PASSWORD" != "" ]; then
   VAR_ARRAY[PASSWORDx]="password=${PASSWORD}"
 fi
-VAR_ARRAY[PORTx]="port=7777"
+if [ "$PORT" != "" ]; then
+  VAR_ARRAY[PORTx]="port=${PORT}"
+fi
 VAR_ARRAY[PRIORITYx]="priority=${PRIORITY}"
 VAR_ARRAY[SECUREx]="secure=${SECURE}"
 if [ "$SEED" != "" ]; then
