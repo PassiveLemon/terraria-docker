@@ -28,23 +28,33 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker & GHCR
-        run: |
-          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "passivelemon" --password-stdin
-          echo "${{ secrets.GHCR_PASSWORD }}" | docker login ghcr.io -u "passivelemon" --password-stdin
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: passivelemon
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build the image
-        run: |
-          docker buildx create --name mainbuilder --driver docker-container --platform linux/amd64 --use
+      - name: Login to GHCR 
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PASSWORD }}
 
-          docker buildx build --push \
-            --build-arg TERRARIAVERSION=${{ steps.get_terraria_release.outputs.latest_terraria }} \
-            --build-arg TERRARIAVERSIONFIX=${{ steps.get_terraria_release.outputs.latest_terraria_fix }} \
-            --provenance=false \
-            --platform linux/amd64,linux/arm64 \
-            --tag passivelemon/terraria-docker:${{ steps.get_terraria_release.outputs.latest_terraria }} \
-            --tag passivelemon/terraria-docker:latest \
-            --tag ghcr.io/passivelemon/terraria-docker:${{ steps.get_terraria_release.outputs.latest_terraria }} \
-            --tag ghcr.io/passivelemon/terraria-docker:latest \
-            .
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            TERRARIAVERSION=${{ steps.get_terraria_release.outputs.latest_terraria }}
+            TERRARIAVERSIONFIX=${{ steps.get_terraria_release.outputs.latest_terraria_fix }}
+          tags: |
+            passivelemon/terraria-docker:latest
+            passivelemon/terraria-docker:${{ steps.get_terraria_release.outputs.latest_terraria }}
+            ghcr.io/passivelemon/terraria-docker:latest
+            ghcr.io/passivelemon/terraria-docker:${{ steps.get_terraria_release.outputs.latest_terraria }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
