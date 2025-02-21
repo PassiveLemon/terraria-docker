@@ -2,7 +2,7 @@ FROM docker.io/debian:latest
 ARG TARGETARCH
 # These come from the workflow --build-args
 ARG TERRARIAVERSION
-ARG TERRARIAVERSIONFIX
+ARG TERRARIAVERSIONTRIM
 
 RUN apt-get update -y &&\
     apt-get install -y bash grep curl unzip libicu-dev tmux jq netcat-openbsd
@@ -23,11 +23,10 @@ RUN chmod -R 755 /opt/terraria/ &&\
 
 WORKDIR /opt/terraria/server/
 
-RUN curl -Lo ./Terraria.zip https://terraria.org/api/download/pc-dedicated-server/terraria-server-${TERRARIAVERSIONFIX}.zip &&\
-    unzip -jo ./Terraria.zip "${TERRARIAVERSIONFIX}/Linux/*" &&\
-    rm ./Terraria.zip
-
-RUN chmod +x ./TerrariaServer*
+RUN curl -Lo ./Terraria.zip https://terraria.org/api/download/pc-dedicated-server/terraria-server-${TERRARIAVERSIONTRIM}.zip &&\
+    unzip -jo ./Terraria.zip "${TERRARIAVERSIONTRIM}/Linux/*" &&\
+    rm ./Terraria.zip &&\
+    chmod +x ./TerrariaServer*
 
 ENV TARGETARCH=$TARGETARCH
 ENV TERRARIAVERSION=$TERRARIAVERSION
@@ -49,6 +48,22 @@ ENV SECURE="1"
 ENV SEED=""
 ENV UPNP="0"
 ENV WORLDNAME="World"
+
+ENV BIOMESPREAD_SETFROZEN="2"
+ENV GODMODE="2"
+ENV INCREASEPLACEMENTRANGE="2"
+ENV RAIN_SETFROZEN="2"
+ENV RAIN_SETSTRENGTH="2"
+ENV SETDIFFICULTY="2"
+ENV SETSPAWNRATE="2"
+ENV TIME_SETDAWN="2"
+ENV TIME_SETDUSK="2"
+ENV TIME_SETFROZEN="2"
+ENV TIME_SETMIDNIGHT="2"
+ENV TIME_SETNOON="2"
+ENV TIME_SETSPEED="2"
+ENV WIND_SETFROZEN="2"
+ENV WIND_SETSTRENGTH="2"
 
 ENTRYPOINT ["/opt/terraria/entrypoint.sh"]
 

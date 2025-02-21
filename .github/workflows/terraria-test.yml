@@ -10,15 +10,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.release.tag_name }}
 
       - name: Get terraria release
         id: get_terraria_release
         run: |
-          TERRARIA="${{ github.event.release.tag_name }}"
+          TERRARIA="1.4.4.9"
           TERRARIAFIX=$(echo \"$TERRARIA\" | jq 'gsub("\\."; "")')
-          echo "Latest terraria release is ${TERRARIA}." >> "$GITHUB_STEP_SUMMARY"
+          echo "Latest Terraria release is ${TERRARIA}." >> "$GITHUB_STEP_SUMMARY"
           echo "latest_terraria=$TERRARIA" >> "$GITHUB_OUTPUT"
           echo "latest_terraria_fix=$TERRARIAFIX" >> "$GITHUB_OUTPUT"
 
@@ -44,17 +42,17 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ./terraria
           push: true
           platforms: linux/amd64,linux/arm64
           build-args: |
-            TERRARIAVERSION=${{ steps.get_terraria_release.outputs.latest_terraria }}
-            TERRARIAVERSIONFIX=${{ steps.get_terraria_release.outputs.latest_terraria_fix }}
+            TERRARIAVERSION=1.4.4.9
+            TERRARIAVERSIONFIX=1449
           tags: |
-            passivelemon/terraria-docker:latest
-            passivelemon/terraria-docker:${{ steps.get_terraria_release.outputs.latest_terraria }}
-            ghcr.io/passivelemon/terraria-docker:latest
-            ghcr.io/passivelemon/terraria-docker:${{ steps.get_terraria_release.outputs.latest_terraria }}
+            passivelemon/terraria-docker:terraria-latest
+            passivelemon/terraria-docker:terraria-1.4.4.9
+            ghcr.io/passivelemon/terraria-docker:terraria-latest
+            ghcr.io/passivelemon/terraria-docker:terraria-1.4.4.9
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

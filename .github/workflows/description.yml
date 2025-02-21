@@ -1,4 +1,4 @@
-name: Update Description
+name: Update Dockerhub description
 
 on:
   push:
