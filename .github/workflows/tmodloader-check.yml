@@ -1,4 +1,4 @@
-name: Check for new releases
+name: (tModLoader) Check for new releases
 
 on:
   workflow_dispatch:

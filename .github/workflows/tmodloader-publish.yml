@@ -1,4 +1,4 @@
-name: Build and push Docker image (tModLoader)
+name: (tModLoader) Build and push Docker image
 
 on:
   workflow_call:

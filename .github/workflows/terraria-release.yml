@@ -1,4 +1,4 @@
-name: Build and push Docker image (Terraria)
+name: (Terraria) Build and push Docker image
 
 on:
   release:
