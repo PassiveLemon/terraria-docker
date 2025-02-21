@@ -53,7 +53,7 @@ jobs:
 
   publish-prerelease:
     if: ${{ needs.check_2024.outputs.prerelease == true }}
-    uses: PassiveLemon/tmodloader1.4-docker/.github/workflows/tmodloader-publish.yml@master
+    uses: PassiveLemon/terraria-docker/.github/workflows/tmodloader-publish.yml@master
     secrets: inherit
     with:
       version: ${{ needs.check_2024.outputs.latest_prerelease }}
@@ -61,7 +61,7 @@ jobs:
 
   publish-release:
     if: ${{ needs.check_2024.outputs.release == true }}
-    uses: PassiveLemon/tmodloader1.4-docker/.github/workflows/tmodloader-publish.yml@master
+    uses: PassiveLemon/terraria-docker/.github/workflows/tmodloader-publish.yml@master
     secrets: inherit
     with:
       version: ${{ needs.check_2024.outputs.latest_release }}
