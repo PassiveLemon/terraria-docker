@@ -51,7 +51,7 @@ jobs:
 
       - name: Build and push Docker image (Pre-release)
         uses: docker/build-push-action@v6
-        if: ${{ github.event.inputs.prerelease == true }}
+        if: ${{ github.event.inputs.prerelease == 'true' }}
         with:
           context: ./tmodloader
           push: true
@@ -69,7 +69,7 @@ jobs:
 
       - name: Build and push Docker image (Release)
         uses: docker/build-push-action@v6
-        if: ${{ github.event.inputs.prerelease == false }}
+        if: ${{ github.event.inputs.prerelease == 'false' }}
         with:
           context: ./tmodloader
           push: true
