@@ -38,17 +38,17 @@ jobs:
           RELEASE=$(curl -s "https://hub.docker.com/v2/repositories/passivelemon/terraria-docker/tags/tmodloader-${{ steps.get_releases.outputs.latest_release }}")
           if echo "$PRERELEASE" | jq -e ".digest" > /dev/null; then
             echo "Version ${{ steps.get_releases.outputs.latest_prerelease }} is already published." >> "$GITHUB_STEP_SUMMARY"
-            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
           else
             echo "Version ${{ steps.get_releases.outputs.latest_prerelease }} is not already published." >> "$GITHUB_STEP_SUMMARY"
-            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
           fi
           if echo "$RELEASE" | jq -e ".digest" > /dev/null; then
             echo "Version ${{ steps.get_releases.outputs.latest_release }} is already published." >> "$GITHUB_STEP_SUMMARY"
-            echo "release=true" >> "$GITHUB_OUTPUT"
+            echo "release=false" >> "$GITHUB_OUTPUT"
           else
             echo "Version ${{ steps.get_releases.outputs.latest_release }} is not already published." >> "$GITHUB_STEP_SUMMARY"
-            echo "release=false" >> "$GITHUB_OUTPUT"
+            echo "release=true" >> "$GITHUB_OUTPUT"
           fi
 
   publish-prerelease:
