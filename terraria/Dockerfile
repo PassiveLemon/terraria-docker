@@ -1,8 +1,8 @@
 FROM docker.io/debian:latest
 ARG TARGETARCH
 # These come from the workflow --build-args
-ARG TERRARIAVERSION
-ARG TERRARIAVERSIONTRIM
+ARG VERSION
+ARG VERSIONTRIM
 
 RUN apt-get update -y &&\
     apt-get install -y bash grep curl unzip libicu-dev tmux jq netcat-openbsd
@@ -23,13 +23,13 @@ RUN chmod -R 755 /opt/terraria/ &&\
 
 WORKDIR /opt/terraria/server/
 
-RUN curl -Lo ./Terraria.zip https://terraria.org/api/download/pc-dedicated-server/terraria-server-${TERRARIAVERSIONTRIM}.zip &&\
-    unzip -jo ./Terraria.zip "${TERRARIAVERSIONTRIM}/Linux/*" &&\
+RUN curl -Lo ./Terraria.zip https://terraria.org/api/download/pc-dedicated-server/terraria-server-${VERSIONTRIM}.zip &&\
+    unzip -jo ./Terraria.zip "${VERSIONTRIM}/Linux/*" &&\
     rm ./Terraria.zip &&\
     chmod +x ./TerrariaServer*
 
 ENV TARGETARCH=$TARGETARCH
-ENV TERRARIAVERSION=$TERRARIAVERSION
+ENV VERSION=$VERSION
 
 ENV SERVERCONFIG="0"
 

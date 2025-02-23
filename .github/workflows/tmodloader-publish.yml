@@ -1,6 +1,17 @@
 name: (tModLoader) Build and push Docker image
 
 on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'tModLoader version'
+        required: true
+        type: string
+      prerelease:
+        description: 'If the release is a pre-release'
+        required: true
+        type: boolean
+    
   workflow_call:
     inputs:
       version:

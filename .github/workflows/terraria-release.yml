@@ -1,12 +1,15 @@
-name: (Terraria) Build and push Docker image
+name: (Terraria) Process releases
 
 on:
   release:
     types: [ published ]
 
 jobs:
-  setup-build-push:
+  process:
     runs-on: ubuntu-latest
+    outputs:
+      latest_terraria: ${{ steps.process.outputs.latest_terraria }}
+      latest_terraria_trim: ${{ steps.process.outputs.latest_terraria_trim }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -15,6 +18,7 @@ jobs:
 
       - name: Get terraria release
         id: get_terraria_release
+        # We need the trimmed version for the download. Trimmed is simply just the version without periods: 1.4.4.9 -> 1449
         run: |
           TERRARIA="${{ github.event.release.tag_name }}"
           TERRARIATRIM=$(echo \"$TERRARIA\" | jq 'gsub("\\."; "")')
@@ -22,42 +26,10 @@ jobs:
           echo "latest_terraria=$TERRARIA" >> "$GITHUB_OUTPUT"
           echo "latest_terraria_trim=$TERRARIATRIM" >> "$GITHUB_OUTPUT"
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: passivelemon
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Login to GHCR 
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_PASSWORD }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./terraria
-          push: true
-          platforms: linux/amd64
-          # We need the trimmed version for the download. Trimmed is simply just the version without periods: 1.4.4.9 -> 1449
-          build-args: |
-            TERRARIAVERSION=${{ steps.get_terraria_release.outputs.latest_terraria }}
-            TERRARIAVERSIONTRIM=${{ steps.get_terraria_release.outputs.latest_terraria_trim }}
-          tags: |
-            passivelemon/terraria-docker:latest
-            passivelemon/terraria-docker:terraria-latest
-            passivelemon/terraria-docker:terraria-${{ steps.get_terraria_release.outputs.latest_terraria }}
-            ghcr.io/passivelemon/terraria-docker:latest
-            ghcr.io/passivelemon/terraria-docker:terraria-latest
-            ghcr.io/passivelemon/terraria-docker:terraria-${{ steps.get_terraria_release.outputs.latest_terraria }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+  publish-release:
+    uses: PassiveLemon/terraria-docker/.github/workflows/terraria-publish.yml@master
+    secrets: inherit
+    with:
+      version: ${{ needs.process.outputs.latest_release }}
+      version_trim: ${{ needs.process.outputs.latest_release_trim }}
 

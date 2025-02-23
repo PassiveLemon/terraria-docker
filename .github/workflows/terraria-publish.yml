@@ -1,8 +1,27 @@
-name: Release Publish
+name: (Terraria) Build and push Docker image
 
 on:
-  release:
-    types: [ published ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Terraria version'
+        required: true
+        type: string
+      version_trim:
+        description: 'Terraria version trimmed'
+        required: true
+        type: string
+    
+  workflow_call:
+    inputs:
+      version:
+        description: 'Terraria version'
+        required: true
+        type: string
+      version_trim:
+        description: 'Terraria version trimmed'
+        required: true
+        type: string
 
 jobs:
   setup-build-push:
@@ -10,16 +29,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Get terraria release
-        id: get_terraria_release
-        run: |
-          TERRARIA="1.4.4.9"
-          TERRARIAFIX=$(echo \"$TERRARIA\" | jq 'gsub("\\."; "")')
-          echo "Latest Terraria release is ${TERRARIA}." >> "$GITHUB_STEP_SUMMARY"
-          echo "latest_terraria=$TERRARIA" >> "$GITHUB_OUTPUT"
-          echo "latest_terraria_fix=$TERRARIAFIX" >> "$GITHUB_OUTPUT"
-
+      
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -44,15 +54,17 @@ jobs:
         with:
           context: ./terraria
           push: true
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           build-args: |
-            TERRARIAVERSION=1.4.4.9
-            TERRARIAVERSIONFIX=1449
+            VERSION=${{ github.event.inputs.version }}
+            VERSIONTRIM=${{ github.event.inputs.version_trim }}
           tags: |
+            passivelemon/terraria-docker:latest
             passivelemon/terraria-docker:terraria-latest
-            passivelemon/terraria-docker:terraria-1.4.4.9
+            passivelemon/terraria-docker:terraria-${{ github.event.inputs.version }}
+            ghcr.io/passivelemon/terraria-docker:latest
             ghcr.io/passivelemon/terraria-docker:terraria-latest
-            ghcr.io/passivelemon/terraria-docker:terraria-1.4.4.9
+            ghcr.io/passivelemon/terraria-docker:terraria-${{ github.event.inputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

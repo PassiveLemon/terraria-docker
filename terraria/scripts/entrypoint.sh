@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-echo "Terraria version: $TERRARIAVERSION on $TARGETARCH"
+echo "Terraria version: $VERSION on $TARGETARCH"
 
 # Run the variables script to check and process server variables
 # shellcheck source=./variables.sh
