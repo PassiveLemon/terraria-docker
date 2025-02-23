@@ -3,7 +3,7 @@
 [![Repo](https://img.shields.io/badge/Docker-Repo-007EC6?labelColor-555555&color-007EC6&logo=docker&logoColor=fff&style=flat-square)](https://hub.docker.com/r/passivelemon/terraria-docker)
 [![Pulls](https://img.shields.io/docker/pulls/passivelemon/terraria-docker?labelColor-555555&color-007EC6&style=flat-square)](https://hub.docker.com/r/passivelemon/terraria-docker)
 
-Unofficial Docker container for a Terraria dedicated server.
+Unofficial Docker container for a Terraria dedicated server. Supports vanilla and modded through tModLoader.
 
 > [!NOTE]
 > This is not at all affiliated with Terraria or tModLoader. Please report issues here.
