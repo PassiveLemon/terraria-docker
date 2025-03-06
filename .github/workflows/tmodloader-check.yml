@@ -3,7 +3,7 @@ name: (tModLoader) Check for new releases
 on:
   workflow_dispatch:
   schedule:
-  - cron: '0 2 * * *'
+    - cron: '0 2 * * *'
 
 jobs:
   # Todo: matrixify this
@@ -51,19 +51,83 @@ jobs:
             echo "release=true" >> "$GITHUB_OUTPUT"
           fi
 
-  publish-prerelease:
-    if: ${{ needs.check_2024.outputs.prerelease == 'true' }}
+  check-2025:
+    runs-on: ubuntu-latest
+    outputs:
+      prerelease: ${{ steps.check_releases.outputs.prerelease }}
+      latest_prerelease: ${{ steps.get_releases.outputs.latest_prerelease }}
+      release: ${{ steps.check_releases.outputs.release }}
+      latest_release: ${{ steps.get_releases.outputs.latest_release }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - uses: gautamkrishnar/keepalive-workflow@v1
+
+      - name: Get releases
+        id: get_releases
+        run: |
+          curl -s https://api.github.com/repos/tModLoader/tModLoader/releases > output.txt
+          PRERELEASE=$(jq -r '[.[] | select(.tag_name | contains("2025")) | select(.prerelease == true)] | max_by(.created_at) | .tag_name | sub("^v";"")' output.txt)
+          RELEASE=$(jq -r '[.[] | select(.tag_name | contains("2025")) | select(.prerelease == false)] | max_by(.created_at) | .tag_name | sub("^v";"")' output.txt)
+          
+          echo "Latest tModLoader pre-release is ${PRERELEASE}." >> "$GITHUB_STEP_SUMMARY"
+          echo "Latest tModLoader release is ${RELEASE}." >> "$GITHUB_STEP_SUMMARY"
+          echo "latest_prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+          echo "latest_release=$RELEASE" >> "$GITHUB_OUTPUT"
+
+      - name: Check if version is already published
+        id: check_releases
+        run: |
+          PRERELEASE=$(curl -s "https://hub.docker.com/v2/repositories/passivelemon/terraria-docker/tags/tmodloader-${{ steps.get_releases.outputs.latest_prerelease }}")
+          RELEASE=$(curl -s "https://hub.docker.com/v2/repositories/passivelemon/terraria-docker/tags/tmodloader-${{ steps.get_releases.outputs.latest_release }}")
+          if echo "$PRERELEASE" | jq -e ".digest" > /dev/null; then
+            echo "Version ${{ steps.get_releases.outputs.latest_prerelease }} is already published." >> "$GITHUB_STEP_SUMMARY"
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Version ${{ steps.get_releases.outputs.latest_prerelease }} is not already published." >> "$GITHUB_STEP_SUMMARY"
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          fi
+          if echo "$RELEASE" | jq -e ".digest" > /dev/null; then
+            echo "Version ${{ steps.get_releases.outputs.latest_release }} is already published." >> "$GITHUB_STEP_SUMMARY"
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Version ${{ steps.get_releases.outputs.latest_release }} is not already published." >> "$GITHUB_STEP_SUMMARY"
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  publish-2024-prerelease:
+    needs: check-2024
+    if: ${{ needs.check-2024.outputs.prerelease == 'true' }}
     uses: PassiveLemon/terraria-docker/.github/workflows/tmodloader-publish.yml@master
     secrets: inherit
     with:
-      version: ${{ needs.check_2024.outputs.latest_prerelease }}
+      version: ${{ needs.check-2024.outputs.latest_prerelease }}
       prerelease: true
 
-  publish-release:
-    if: ${{ needs.check_2024.outputs.release == 'true' }}
+  publish-2024-release:
+    needs: check-2024
+    if: ${{ needs.check-2024.outputs.release == 'true' }}
     uses: PassiveLemon/terraria-docker/.github/workflows/tmodloader-publish.yml@master
     secrets: inherit
     with:
-      version: ${{ needs.check_2024.outputs.latest_release }}
+      version: ${{ needs.check-2024.outputs.latest_release }}
+      prerelease: false
+
+  publish-2025-prerelease:
+    needs: check-2025
+    if: ${{ needs.check-2025.outputs.prerelease == 'true' }}
+    uses: PassiveLemon/terraria-docker/.github/workflows/tmodloader-publish.yml@master
+    secrets: inherit
+    with:
+      version: ${{ needs.check-2025.outputs.latest_prerelease }}
+      prerelease: true
+
+  publish-2025-release:
+    needs: check-2025
+    if: ${{ needs.check-2025.outputs.release == 'true' }}
+    uses: PassiveLemon/terraria-docker/.github/workflows/tmodloader-publish.yml@master
+    secrets: inherit
+    with:
+      version: ${{ needs.check-2025.outputs.latest_release }}
       prerelease: false
 

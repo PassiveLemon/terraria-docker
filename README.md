@@ -45,8 +45,8 @@ SERVERCONFIG | `boolean` | `0` | Toggles whether the server will use a user prov
 | Variable | Options | Default | Details |
 |:-|:-|:-|:-|
 | `AUTOCREATE` | `1` `2` `3`| `2` | The world size to autocreate if the worldname is not found. |
-| `DIFFICULTY` | `0` `1` `2` `3` | `0` | The difficulty level to use with autocreate. |
 | `BANLIST` | `string`| `banlist.txt` | The file with the list of banned players. |
+| `DIFFICULTY` | `0` `1` `2` `3` | `0` | The difficulty level to use with autocreate. |
 | `LANGUAGE` | `en-US` `de-DE` `it-IT` `fr-FR` `es-ES` `ru-RU` `zh-Hans` `pt-BR` `pl-PL` | `en-US` | The language to use. |
 | `MAXPLAYERS` | `integer` | `8` | The maximum amount of players that can be on the server. |
 | `MODPACK` | `string` | `NA` | The modpack to start the server with. This only works with tModLoader. |
