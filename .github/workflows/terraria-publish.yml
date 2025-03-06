@@ -56,15 +56,15 @@ jobs:
           push: true
           platforms: linux/amd64
           build-args: |
-            VERSION=${{ github.event.inputs.version }}
-            VERSIONTRIM=${{ github.event.inputs.version_trim }}
+            VERSION=${{ inputs.version }}
+            VERSIONTRIM=${{ inputs.version_trim }}
           tags: |
             passivelemon/terraria-docker:latest
             passivelemon/terraria-docker:terraria-latest
-            passivelemon/terraria-docker:terraria-${{ github.event.inputs.version }}
+            passivelemon/terraria-docker:terraria-${{ inputs.version }}
             ghcr.io/passivelemon/terraria-docker:latest
             ghcr.io/passivelemon/terraria-docker:terraria-latest
-            ghcr.io/passivelemon/terraria-docker:terraria-${{ github.event.inputs.version }}
+            ghcr.io/passivelemon/terraria-docker:terraria-${{ inputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

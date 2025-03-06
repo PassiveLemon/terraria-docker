@@ -27,6 +27,7 @@ jobs:
           echo "latest_terraria_trim=$TERRARIATRIM" >> "$GITHUB_OUTPUT"
 
   publish-release:
+    needs: process
     uses: PassiveLemon/terraria-docker/.github/workflows/terraria-publish.yml@master
     secrets: inherit
     with:
