@@ -10,7 +10,7 @@ on:
       prerelease:
         description: 'If the release is a pre-release'
         required: true
-        type: boolean
+        type: string
     
   workflow_call:
     inputs:
@@ -21,7 +21,7 @@ on:
       prerelease:
         description: 'If the release is a pre-release'
         required: true
-        type: boolean
+        type: string
 
 jobs:
   setup-build-push:
@@ -29,7 +29,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -51,37 +51,37 @@ jobs:
 
       - name: Build and push Docker image (Pre-release)
         uses: docker/build-push-action@v6
-        if: ${{ github.event.inputs.prerelease == 'true' }}
+        if: ${{ inputs.prerelease == 'true' }}
         with:
           context: ./tmodloader
           push: true
           platforms: linux/amd64
-          build-args: VERSION=${{ github.event.inputs.version }}
+          build-args: VERSION=${{ inputs.version }}
           tags: |
             passivelemon/terraria-docker:tmodloader-latest-pre
             passivelemon/terraria-docker:tmodloader-2024-pre
-            passivelemon/terraria-docker:tmodloader-${{ github.event.inputs.version }}
+            passivelemon/terraria-docker:tmodloader-${{ inputs.version }}
             ghcr.io/passivelemon/terraria-docker:tmodloader-latest-pre
             ghcr.io/passivelemon/terraria-docker:tmodloader-2024-pre
-            ghcr.io/passivelemon/terraria-docker:tmodloader-${{ github.event.inputs.version }}
+            ghcr.io/passivelemon/terraria-docker:tmodloader-${{ inputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Build and push Docker image (Release)
         uses: docker/build-push-action@v6
-        if: ${{ github.event.inputs.prerelease == 'false' }}
+        if: ${{ inputs.prerelease == 'false' }}
         with:
           context: ./tmodloader
           push: true
           platforms: linux/amd64
-          build-args: VERSION=${{ github.event.inputs.version }}
+          build-args: VERSION=${{ inputs.version }}
           tags: |
             passivelemon/terraria-docker:tmodloader-latest
             passivelemon/terraria-docker:tmodloader-2024
-            passivelemon/terraria-docker:tmodloader-${{ github.event.inputs.version }}
+            passivelemon/terraria-docker:tmodloader-${{ inputs.version }}
             ghcr.io/passivelemon/terraria-docker:tmodloader-latest
             ghcr.io/passivelemon/terraria-docker:tmodloader-2024
-            ghcr.io/passivelemon/terraria-docker:tmodloader-${{ github.event.inputs.version }}
+            ghcr.io/passivelemon/terraria-docker:tmodloader-${{ inputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
