@@ -102,6 +102,7 @@ jobs:
     secrets: inherit
     with:
       version: ${{ needs.check-2024.outputs.latest_prerelease }}
+      year: '2024'
       prerelease: 'true'
 
   publish-2024-release:
@@ -111,6 +112,7 @@ jobs:
     secrets: inherit
     with:
       version: ${{ needs.check-2024.outputs.latest_release }}
+      year: '2024'
       prerelease: 'false'
 
   publish-2025-prerelease:
@@ -120,6 +122,7 @@ jobs:
     secrets: inherit
     with:
       version: ${{ needs.check-2025.outputs.latest_prerelease }}
+      year: '2025'
       prerelease: 'true'
 
   publish-2025-release:
@@ -129,5 +132,6 @@ jobs:
     secrets: inherit
     with:
       version: ${{ needs.check-2025.outputs.latest_release }}
+      year: '2025'
       prerelease: 'false'
 

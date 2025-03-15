@@ -7,6 +7,10 @@ on:
         description: 'tModLoader version'
         required: true
         type: string
+      year:
+        description: 'tModLoader release year'
+        required: true
+        type: string
       prerelease:
         description: 'If the release is a pre-release'
         required: true
@@ -16,6 +20,10 @@ on:
     inputs:
       version:
         description: 'tModLoader version'
+        required: true
+        type: string
+      year:
+        description: 'tModLoader release year'
         required: true
         type: string
       prerelease:
@@ -59,10 +67,10 @@ jobs:
           build-args: VERSION=${{ inputs.version }}
           tags: |
             passivelemon/terraria-docker:tmodloader-latest-pre
-            passivelemon/terraria-docker:tmodloader-2024-pre
+            passivelemon/terraria-docker:tmodloader-${{ inputs.year }}-pre
             passivelemon/terraria-docker:tmodloader-${{ inputs.version }}
             ghcr.io/passivelemon/terraria-docker:tmodloader-latest-pre
-            ghcr.io/passivelemon/terraria-docker:tmodloader-2024-pre
+            ghcr.io/passivelemon/terraria-docker:tmodloader-${{ inputs.year }}-pre
             ghcr.io/passivelemon/terraria-docker:tmodloader-${{ inputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -77,10 +85,10 @@ jobs:
           build-args: VERSION=${{ inputs.version }}
           tags: |
             passivelemon/terraria-docker:tmodloader-latest
-            passivelemon/terraria-docker:tmodloader-2024
+            passivelemon/terraria-docker:tmodloader-${{ inputs.year }}
             passivelemon/terraria-docker:tmodloader-${{ inputs.version }}
             ghcr.io/passivelemon/terraria-docker:tmodloader-latest
-            ghcr.io/passivelemon/terraria-docker:tmodloader-2024
+            ghcr.io/passivelemon/terraria-docker:tmodloader-${{ inputs.year }}
             ghcr.io/passivelemon/terraria-docker:tmodloader-${{ inputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
