@@ -123,11 +123,11 @@ Server configuration details on the [Terraria Wiki](https://terraria.wiki.gg/wik
 | `terraria-<version>` | Specific version of Terraria. |
 | `tmodloader-latest` | Latest tModLoader release (stable). |
 | `tmodloader-latest-pre` | Latest tModLoader pre-release (unstable). |
-| `tmodloader-2024` | Latest tModLoader 2024 (1.4.4) release (stable). |
-| `tmodloader-2024-pre` | Latest tModLoader 2024 (1.4.4) pre-release (unstable). |
+| `tmodloader-<year>` | Latest tModLoader year release (stable). |
+| `tmodloader-<year>-pre` | Latest tModLoader year pre-release (unstable). |
 | `tmodloader-<version>` | Specific version of tModLoader. |
 
-It is recommended to pin a tModLoader server to either a specific version or a year release tag as tModLoader can be unstable.
+Though stable are likely fine, it is recommended to pin the server to a specific version to avoid potential save corruption.
 
 Terraria versions at [releases](https://github.com/PassiveLemon/terraria-docker/releases/).
 tModLoader versions at [tModLoader](https://github.com/tModLoader/tModLoader/releases/) (Do not include the `v` prefix).
