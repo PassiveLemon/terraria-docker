@@ -33,7 +33,7 @@ on:
 
 jobs:
   setup-build-push:
-    if: ${{ inputs.version == 'false' }}
+    if: ${{ inputs.version != 'false' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
