@@ -4,134 +4,112 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 2 * * *'
+  push:
 
 jobs:
-  # Todo: matrixify this
-  check-2024:
+  update-description:
     runs-on: ubuntu-latest
-    outputs:
-      prerelease: ${{ steps.check_releases.outputs.prerelease }}
-      latest_prerelease: ${{ steps.get_releases.outputs.latest_prerelease }}
-      release: ${{ steps.check_releases.outputs.release }}
-      latest_release: ${{ steps.get_releases.outputs.latest_release }}
+    steps:
+      - uses: gautamkrishnar/keepalive-workflow@v1
+
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+        year: [ 2024, 2025 ]
+        type: [ release, prerelease ]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - uses: gautamkrishnar/keepalive-workflow@v1
 
-      - name: Get releases
+      - name: Get releases (${{ matrix.year }} ${{ matrix.type }})
         id: get_releases
         run: |
+          YEAR="${{ matrix.year }}"
+          TYPE="${{ matrix.type }}"
+
           curl -s https://api.github.com/repos/tModLoader/tModLoader/releases > output.txt
-          PRERELEASE=$(jq -r '[.[] | select(.tag_name | contains("2024")) | select(.prerelease == true)] | max_by(.created_at) | .tag_name | sub("^v";"")' output.txt)
-          RELEASE=$(jq -r '[.[] | select(.tag_name | contains("2024")) | select(.prerelease == false)] | max_by(.created_at) | .tag_name | sub("^v";"")' output.txt)
-          
-          echo "Latest tModLoader pre-release is ${PRERELEASE}." >> "$GITHUB_STEP_SUMMARY"
-          echo "Latest tModLoader release is ${RELEASE}." >> "$GITHUB_STEP_SUMMARY"
-          echo "latest_prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
-          echo "latest_release=$RELEASE" >> "$GITHUB_OUTPUT"
-
-      - name: Check if version is already published
-        id: check_releases
-        run: |
-          PRERELEASE=$(curl -s "https://hub.docker.com/v2/repositories/passivelemon/terraria-docker/tags/tmodloader-${{ steps.get_releases.outputs.latest_prerelease }}")
-          RELEASE=$(curl -s "https://hub.docker.com/v2/repositories/passivelemon/terraria-docker/tags/tmodloader-${{ steps.get_releases.outputs.latest_release }}")
-          if echo "$PRERELEASE" | jq -e ".digest" > /dev/null; then
-            echo "Version ${{ steps.get_releases.outputs.latest_prerelease }} is already published." >> "$GITHUB_STEP_SUMMARY"
-            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          if [ "$TYPE" == "prerelease" ]; then
+            VERSION=$(jq -r '[.[] | select(.tag_name | contains("'"${YEAR}"'")) | select(.prerelease == true)] | max_by(.created_at) | .tag_name | sub("^v";"")' output.txt)
           else
-            echo "Version ${{ steps.get_releases.outputs.latest_prerelease }} is not already published." >> "$GITHUB_STEP_SUMMARY"
-            echo "prerelease=true" >> "$GITHUB_OUTPUT"
-          fi
-          if echo "$RELEASE" | jq -e ".digest" > /dev/null; then
-            echo "Version ${{ steps.get_releases.outputs.latest_release }} is already published." >> "$GITHUB_STEP_SUMMARY"
-            echo "release=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "Version ${{ steps.get_releases.outputs.latest_release }} is not already published." >> "$GITHUB_STEP_SUMMARY"
-            echo "release=true" >> "$GITHUB_OUTPUT"
+            VERSION=$(jq -r '[.[] | select(.tag_name | contains("'"${YEAR}"'")) | select(.prerelease == false)] | max_by(.created_at) | .tag_name | sub("^v";"")' output.txt)
           fi
 
-  check-2025:
+          UPSTREAM=$(curl -s "https://hub.docker.com/v2/repositories/passivelemon/terraria-docker/tags/tmodloader-${VERSION}")
+
+          if echo "$UPSTREAM" | jq -e ".digest" > /dev/null; then
+            echo "Latest $YEAR $TYPE ($VERSION) is already published." >> "$GITHUB_STEP_SUMMARY"
+            echo "VERSION=false" >> "$GITHUB_ENV"
+          else
+            echo "Latest $YEAR $TYPE ($VERSION) is not already published.." >> "$GITHUB_STEP_SUMMARY"
+            echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          fi
+
+      - name: Write json fragment
+        uses: amochkin/action-json@v1
+        with:
+          file: "${{ matrix.year }}-${{ matrix.type }}.json"
+          mode: write
+          property: "year.${{ matrix.year }}.type.${{ matrix.type }}"
+          value: "${{ env.VERSION }}"
+
+      - name: Upload json fragment
+        uses: actions/upload-artifact@v4
+        with:
+          name: "${{ matrix.year }}-${{ matrix.type }}"
+          path: "${{ matrix.year }}-${{ matrix.type }}.json"
+
+  data_handler:
+    needs: check
     runs-on: ubuntu-latest
     outputs:
-      prerelease: ${{ steps.check_releases.outputs.prerelease }}
-      latest_prerelease: ${{ steps.get_releases.outputs.latest_prerelease }}
-      release: ${{ steps.check_releases.outputs.release }}
-      latest_release: ${{ steps.get_releases.outputs.latest_release }}
+      data: ${{ steps.write_output.outputs.data }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - uses: gautamkrishnar/keepalive-workflow@v1
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: output/
 
-      - name: Get releases
-        id: get_releases
+      - name: Merge json fragments
         run: |
-          curl -s https://api.github.com/repos/tModLoader/tModLoader/releases > output.txt
-          PRERELEASE=$(jq -r '[.[] | select(.tag_name | contains("2025")) | select(.prerelease == true)] | max_by(.created_at) | .tag_name | sub("^v";"")' output.txt)
-          RELEASE=$(jq -r '[.[] | select(.tag_name | contains("2025")) | select(.prerelease == false)] | max_by(.created_at) | .tag_name | sub("^v";"")' output.txt)
-          
-          echo "Latest tModLoader pre-release is ${PRERELEASE}." >> "$GITHUB_STEP_SUMMARY"
-          echo "Latest tModLoader release is ${RELEASE}." >> "$GITHUB_STEP_SUMMARY"
-          echo "latest_prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
-          echo "latest_release=$RELEASE" >> "$GITHUB_OUTPUT"
+          jq -sc 'reduce .[] as $item ({}; . * $item)' output/*/*.json > final-data.json
 
-      - name: Check if version is already published
-        id: check_releases
+      - name: Upload final-data.json
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-data
+          path: final-data.json
+
+      - name: Write final-data.json to output
+        id: write_output
+        shell: python
         run: |
-          PRERELEASE=$(curl -s "https://hub.docker.com/v2/repositories/passivelemon/terraria-docker/tags/tmodloader-${{ steps.get_releases.outputs.latest_prerelease }}")
-          RELEASE=$(curl -s "https://hub.docker.com/v2/repositories/passivelemon/terraria-docker/tags/tmodloader-${{ steps.get_releases.outputs.latest_release }}")
-          if echo "$PRERELEASE" | jq -e ".digest" > /dev/null; then
-            echo "Version ${{ steps.get_releases.outputs.latest_prerelease }} is already published." >> "$GITHUB_STEP_SUMMARY"
-            echo "prerelease=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "Version ${{ steps.get_releases.outputs.latest_prerelease }} is not already published." >> "$GITHUB_STEP_SUMMARY"
-            echo "prerelease=true" >> "$GITHUB_OUTPUT"
-          fi
-          if echo "$RELEASE" | jq -e ".digest" > /dev/null; then
-            echo "Version ${{ steps.get_releases.outputs.latest_release }} is already published." >> "$GITHUB_STEP_SUMMARY"
-            echo "release=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "Version ${{ steps.get_releases.outputs.latest_release }} is not already published." >> "$GITHUB_STEP_SUMMARY"
-            echo "release=true" >> "$GITHUB_OUTPUT"
-          fi
+          #!/usr/bin/env python3
 
-  publish-2024-prerelease:
-    needs: check-2024
-    if: ${{ needs.check-2024.outputs.prerelease == 'true' }}
+          import os
+          import json
+
+          GITHUB_OUTPUT = os.getenv('GITHUB_OUTPUT')
+
+          with open('final-data.json', 'r') as data_file:
+            data = json.load(data_file)
+
+          with open(GITHUB_OUTPUT, 'w') as output_file:
+            escaped_data = json.dumps(data).replace('"', '\"')
+            output_file.write(f'data={escaped_data}')
+
+  publish:
+    needs: data_handler
+    strategy:
+      matrix:
+        year: [ 2024, 2025 ]
+        type: [ release, prerelease ]
     uses: PassiveLemon/terraria-docker/.github/workflows/tmodloader-publish.yml@master
+    # uses: ./.github/workflows/tmodloader-publish.yml # for local testing
     secrets: inherit
     with:
-      version: ${{ needs.check-2024.outputs.latest_prerelease }}
-      year: '2024'
-      prerelease: 'true'
-
-  publish-2024-release:
-    needs: check-2024
-    if: ${{ needs.check-2024.outputs.release == 'true' }}
-    uses: PassiveLemon/terraria-docker/.github/workflows/tmodloader-publish.yml@master
-    secrets: inherit
-    with:
-      version: ${{ needs.check-2024.outputs.latest_release }}
-      year: '2024'
-      prerelease: 'false'
-
-  publish-2025-prerelease:
-    needs: check-2025
-    if: ${{ needs.check-2025.outputs.prerelease == 'true' }}
-    uses: PassiveLemon/terraria-docker/.github/workflows/tmodloader-publish.yml@master
-    secrets: inherit
-    with:
-      version: ${{ needs.check-2025.outputs.latest_prerelease }}
-      year: '2025'
-      prerelease: 'true'
-
-  publish-2025-release:
-    needs: check-2025
-    if: ${{ needs.check-2025.outputs.release == 'true' }}
-    uses: PassiveLemon/terraria-docker/.github/workflows/tmodloader-publish.yml@master
-    secrets: inherit
-    with:
-      version: ${{ needs.check-2025.outputs.latest_release }}
-      year: '2025'
-      prerelease: 'false'
+      version: ${{ fromJson(needs.data_handler.outputs.data).year[matrix.year].type[matrix.type] }}
+      year: ${{ matrix.year }}
+      type: ${{ matrix.type }}
 
