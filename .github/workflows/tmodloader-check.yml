@@ -27,6 +27,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Create json fragment
+        uses: 1arp/create-a-file-action@0.4.5
+        with:
+          file: "${{ matrix.year }}-${{ matrix.type }}.json"
+          content: "{}"
+
       - name: Get releases (${{ matrix.year }} ${{ matrix.type }})
         id: get_releases
         run: |
@@ -49,6 +55,14 @@ jobs:
             echo "Latest $YEAR $TYPE ($VERSION) is not already published.." >> "$GITHUB_STEP_SUMMARY"
             echo {\"year\":\"$YEAR\"{\"type\":\"$TYPE\"{\"version\":\"$VERSION\"}}} > "${{ matrix.year }}-${{ matrix.type }}.json"
           fi
+
+      - name: Write json fragment
+        uses: amochkin/action-json@v1
+        with:
+          file: "${{ matrix.year }}-${{ matrix.type }}.json"
+          mode: write
+          property: "year.${{ matrix.year }}.type.${{ matrix.type }}"
+          value: "${{ env.VERSION }}"
 
       - name: Upload json fragment
         uses: actions/upload-artifact@v4
