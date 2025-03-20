@@ -8,10 +8,10 @@ on:
         required: true
         type: string
       year:
-        description: 'tModLoader release year'
+        description: 'Release year'
         required: true
         type: string
-      prerelease:
+      type:
         description: 'If the release is a pre-release'
         required: true
         type: string
@@ -23,16 +23,17 @@ on:
         required: true
         type: string
       year:
-        description: 'tModLoader release year'
+        description: 'Release year'
         required: true
         type: string
-      prerelease:
+      type:
         description: 'If the release is a pre-release'
         required: true
         type: string
 
 jobs:
   setup-build-push:
+    if: ${{ inputs.version == 'false' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -59,7 +60,7 @@ jobs:
 
       - name: Build and push Docker image (Pre-release)
         uses: docker/build-push-action@v6
-        if: ${{ inputs.prerelease == 'true' }}
+        if: ${{ inputs.type == 'prerelease' }}
         with:
           context: ./tmodloader
           push: true
@@ -77,7 +78,7 @@ jobs:
 
       - name: Build and push Docker image (Release)
         uses: docker/build-push-action@v6
-        if: ${{ inputs.prerelease == 'false' }}
+        if: ${{ inputs.type == 'release' }}
         with:
           context: ./tmodloader
           push: true

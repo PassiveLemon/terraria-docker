@@ -1,2 +1,4 @@
+.artifacts/
+*-*.json
 ContainerTester.sh
 
