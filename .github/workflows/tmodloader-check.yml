@@ -52,7 +52,7 @@ jobs:
             echo "Latest $YEAR $TYPE ($VERSION) is already published." >> "$GITHUB_STEP_SUMMARY"
             echo "VERSION=false" >> "$GITHUB_ENV"
           else
-            echo "Latest $YEAR $TYPE ($VERSION) is not already published.." >> "$GITHUB_STEP_SUMMARY"
+            echo "Latest $YEAR $TYPE ($VERSION) is not already published." >> "$GITHUB_STEP_SUMMARY"
             echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           fi
 
