@@ -53,7 +53,7 @@ jobs:
             echo "VERSION=false" >> "$GITHUB_ENV"
           else
             echo "Latest $YEAR $TYPE ($VERSION) is not already published.." >> "$GITHUB_STEP_SUMMARY"
-            echo {\"year\":\"$YEAR\"{\"type\":\"$TYPE\"{\"version\":\"$VERSION\"}}} > "${{ matrix.year }}-${{ matrix.type }}.json"
+            echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           fi
 
       - name: Write json fragment
