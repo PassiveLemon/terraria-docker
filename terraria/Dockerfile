@@ -4,9 +4,6 @@ ARG TARGETARCH
 ARG VERSION
 ARG VERSIONTRIM
 
-RUN apt-get update -y &&\
-    apt-get install -y bash grep curl unzip libicu-dev tmux jq netcat-openbsd
-
 # Mono
 #RUN if [ "$TARGETARCH" = "arm64" ]; then apk add --no-cache mono --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing; fi
 
@@ -22,6 +19,9 @@ RUN chmod -R 755 /opt/terraria/ &&\
     chmod 755 /usr/local/bin/inject
 
 WORKDIR /opt/terraria/server/
+
+RUN apt-get update -y &&\
+    apt-get install -y bash grep curl unzip libicu-dev tmux jq netcat-openbsd
 
 RUN curl -Lo ./Terraria.zip https://terraria.org/api/download/pc-dedicated-server/terraria-server-${VERSIONTRIM}.zip &&\
     unzip -jo ./Terraria.zip "${VERSIONTRIM}/Linux/*" &&\

@@ -58,6 +58,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_PASSWORD }}
 
+      - name: Pull last image for layer reuse
+        run: |
+          docker pull docker.io/passivelemon/terraria-docker:tmodloader-latest
+
       - name: Build and push Docker image (Pre-release)
         uses: docker/build-push-action@v6
         if: ${{ inputs.type == 'prerelease' }}

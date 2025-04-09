@@ -2,8 +2,6 @@ FROM docker.io/alpine:latest
 # VERSION comes from the main.yml workflow --build-arg
 ARG VERSION
 
-RUN apk add --no-cache bash grep curl unzip icu-dev tmux netcat-openbsd
-
 RUN mkdir -p /opt/terraria/server/ &&\
     mkdir -p /opt/terraria/config/ModPacks &&\
     mkdir -p /opt/terraria/config/Worlds
@@ -17,6 +15,8 @@ RUN chmod -R 755 /opt/terraria/ &&\
     chmod 755 /usr/local/bin/inject
 
 WORKDIR /opt/terraria/server/
+
+RUN apk add --no-cache bash grep curl unzip icu-dev tmux netcat-openbsd
 
 RUN curl -Lo ./tModLoader.zip https://github.com/tModLoader/tModLoader/releases/download/v${VERSION}/tModLoader.zip &&\
     unzip -o ./tModLoader.zip &&\
