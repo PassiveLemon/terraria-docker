@@ -67,5 +67,3 @@ ENV WIND_SETSTRENGTH="2"
 
 ENTRYPOINT ["/opt/terraria/entrypoint.sh"]
 
-HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 CMD nc -vz 127.0.0.1 $PORT || exit 1
-

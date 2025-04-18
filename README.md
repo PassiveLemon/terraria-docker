@@ -175,8 +175,23 @@ services:
     volumes:
       - /opt/terrariaServer/:/opt/terraria/config/
     environment:
-      WORLD: 'myworld'
+      WORLD: "myworld"
 ```
+
+## Healthcheck
+If you have a service that depends on the health state of the container, you can add a healthcheck as such:
+```yml
+services:
+  terraria-docker:
+    # ...
+    healthcheck:
+      test: "nc -vz 127.0.0.1 7777 || exit 1" # Change 7777 to your internal server port if needed
+      interval: 30s
+      timeout: 5s
+      start-period: 10s
+      retries: 3
+```
+Note that this can inhibit server hibernation when no players are present.
 
 # 7. Reference
 Your config directory should look something like:
