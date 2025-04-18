@@ -1,8 +1,7 @@
 name: (Terraria) Process releases
 
 on:
-  release:
-    types: [ published ]
+  workflow_call:
 
 jobs:
   process:
