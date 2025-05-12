@@ -13,8 +13,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Keepalive
-        uses: gautamkrishnar/keepalive-workflow@v1
+      # Removed. Will need to find some other solution.
+      #   uses: gautamkrishnar/keepalive-workflow@v1
 
   check:
     runs-on: ubuntu-latest
