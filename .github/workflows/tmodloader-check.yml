@@ -7,14 +7,15 @@ on:
   push:
 
 jobs:
-  keep-alive:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # Keep-alive was Removed. Will need to find some other solution.
+  # keep-alive:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      # Removed. Will need to find some other solution.
-      #   uses: gautamkrishnar/keepalive-workflow@v1
+  #     - name: Keepalive
+  #       uses: gautamkrishnar/keepalive-workflow@v1
 
   check:
     runs-on: ubuntu-latest
