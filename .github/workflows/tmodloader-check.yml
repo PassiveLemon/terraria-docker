@@ -22,7 +22,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        year: [ 2024, 2025 ]
+        year: [ 2025 ]
         type: [ release, prerelease ]
     steps:
       - name: Checkout code
@@ -114,7 +114,7 @@ jobs:
     needs: data_handler
     strategy:
       matrix:
-        year: [ 2024, 2025 ]
+        year: [ 2025 ]
         type: [ release, prerelease ]
     uses: PassiveLemon/terraria-docker/.github/workflows/tmodloader-publish.yml@master
     # uses: ./.github/workflows/tmodloader-publish.yml # for local testing
