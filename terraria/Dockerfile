@@ -1,17 +1,14 @@
 FROM docker.io/debian:latest
-ARG TARGETARCH
 # These come from the workflow --build-args
 ARG VERSION
 ARG VERSIONTRIM
-
-# Mono
-#RUN if [ "$TARGETARCH" = "arm64" ]; then apk add --no-cache mono --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing; fi
 
 RUN mkdir -p /opt/terraria/server/ &&\
     mkdir -p /opt/terraria/config/Worlds
 
 COPY scripts/entrypoint.sh /opt/terraria/
 COPY scripts/variables.sh /opt/terraria/
+COPY scripts/server.sh /opt/terraria/
 COPY scripts/inject.sh /usr/local/bin/inject
 
 RUN chmod -R 755 /opt/terraria/ &&\
@@ -21,14 +18,19 @@ RUN chmod -R 755 /opt/terraria/ &&\
 WORKDIR /opt/terraria/server/
 
 RUN apt-get update -y &&\
-    apt-get install -y bash grep curl unzip libicu-dev tmux jq netcat-openbsd
+    apt-get install -y curl unzip
 
 RUN curl -Lo ./Terraria.zip https://terraria.org/api/download/pc-dedicated-server/terraria-server-${VERSIONTRIM}.zip &&\
     unzip -jo ./Terraria.zip "${VERSIONTRIM}/Linux/*" &&\
     rm ./Terraria.zip &&\
     chmod +x ./TerrariaServer*
 
-ENV TARGETARCH=$TARGETARCH
+RUN apt-get update -y &&\
+    apt-get install -y netcat-openbsd bash gosu procps libicu-dev tmux
+
+ENV PUID="1000"
+ENV PGID="1000"
+
 ENV VERSION=$VERSION
 
 ENV SERVERCONFIG="0"
@@ -64,6 +66,8 @@ ENV TIME_SETNOON="2"
 ENV TIME_SETSPEED="2"
 ENV WIND_SETFROZEN="2"
 ENV WIND_SETSTRENGTH="2"
+
+EXPOSE 7777
 
 ENTRYPOINT ["/opt/terraria/entrypoint.sh"]
 

@@ -1,0 +1,23 @@
+services:
+  test-terraria-docker:
+    pull_policy: build
+    build:
+      context: .
+      args:
+        VERSION: "1.4.4.9"
+        VERSIONTRIM: "1449"
+    container_name: test-terraria-docker
+    ports:
+      - 7777:7777
+    volumes:
+      - ./test/:/opt/terraria/config/
+    environment:
+      PUID: "${PUID}"
+      PGID: "${PGID}"
+    healthcheck:
+      test: "nc -vz 127.0.0.1 7777 || exit 1"
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+

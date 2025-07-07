@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 declare -A VAR_ARRAY
 
 # Define server variables for config pasting later. Very crude and ugly

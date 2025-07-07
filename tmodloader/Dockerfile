@@ -8,6 +8,7 @@ RUN mkdir -p /opt/terraria/server/ &&\
 
 COPY scripts/entrypoint.sh /opt/terraria/
 COPY scripts/variables.sh /opt/terraria/
+COPY scripts/server.sh /opt/terraria/
 COPY scripts/inject.sh /usr/local/bin/inject
 
 RUN chmod -R 755 /opt/terraria/ &&\
@@ -16,13 +17,19 @@ RUN chmod -R 755 /opt/terraria/ &&\
 
 WORKDIR /opt/terraria/server/
 
-RUN apk add --no-cache bash grep curl unzip icu-dev tmux netcat-openbsd
+# Split this off to a builder step
+RUN apk add --no-cache curl unzip
 
 RUN curl -Lo ./tModLoader.zip https://github.com/tModLoader/tModLoader/releases/download/v${VERSION}/tModLoader.zip &&\
     unzip -o ./tModLoader.zip &&\
     rm ./tModLoader.zip &&\
     rm ./serverconfig.txt &&\
     chmod +x ./start-tModLoaderServer.sh
+
+RUN apk add --no-cache netcat-openbsd bash su-exec grep icu-dev tmux
+
+ENV PUID="1000"
+ENV PGID="1000"
 
 ENV VERSION=$VERSION
 
@@ -59,6 +66,8 @@ ENV TIME_SETNOON="2"
 ENV TIME_SETSPEED="2"
 ENV WIND_SETFROZEN="2"
 ENV WIND_SETSTRENGTH="2"
+
+EXPOSE 7777
 
 ENTRYPOINT ["/opt/terraria/entrypoint.sh"]
 

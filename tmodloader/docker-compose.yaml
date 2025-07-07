@@ -1,0 +1,23 @@
+services:
+  test-tmodloader-docker:
+    pull_policy: build
+    build:
+      context: .
+      args:
+        VERSION: "2025.05.3.0"
+    container_name: test-tmodloader-docker
+    ports:
+      - 7777:7777
+    volumes:
+      - ./test/:/opt/terraria/config/
+    environment:
+      PUID: "${PUID}"
+      PGID: "${PGID}"
+      MODPACK: "testpack"
+    healthcheck:
+      test: "nc -vz 127.0.0.1 7777 || exit 1"
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
