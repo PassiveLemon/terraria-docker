@@ -4,30 +4,30 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'tModLoader version'
+        description: 'tModLoader version (ex: 2025.06.2.0)'
         required: true
         type: string
       year:
-        description: 'Release year'
+        description: 'Release year (ex: 2025)'
         required: true
         type: string
       type:
-        description: 'If the release is a pre-release'
+        description: 'Release type (release, prerelease)'
         required: true
         type: string
     
   workflow_call:
     inputs:
       version:
-        description: 'tModLoader version'
+        description: 'tModLoader version (ex: 2025.06.2.0)'
         required: true
         type: string
       year:
-        description: 'Release year'
+        description: 'Release year (ex: 2025)'
         required: true
         type: string
       type:
-        description: 'If the release is a pre-release'
+        description: 'Release type (release, prerelease)'
         required: true
         type: string
 

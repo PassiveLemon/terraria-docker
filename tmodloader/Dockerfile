@@ -13,6 +13,7 @@ COPY scripts/inject.sh /usr/local/bin/inject
 
 RUN chmod -R 755 /opt/terraria/ &&\
     chmod +x /opt/terraria/entrypoint.sh &&\
+    chmod +x /opt/terraria/server.sh &&\
     chmod 755 /usr/local/bin/inject
 
 WORKDIR /opt/terraria/server/
