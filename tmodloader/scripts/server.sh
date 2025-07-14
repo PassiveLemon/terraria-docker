@@ -2,7 +2,19 @@
 
 set -e
 
-echo "tModLoader version: $VERSION"
+echo "tModLoader version: ${VERSION}"
+
+# Check that the modpack version matches tml if tmlversion.txt is present
+if [ -e "/opt/terraria/config/ModPacks/${MODPACK}/Mods/tmlversion.txt" ]; then
+  MODPACKVER=$(cat "/opt/terraria/config/ModPacks/${MODPACK}/Mods/tmlversion.txt")
+
+  echo "Modpack version: ${MODPACKVER}"
+
+  if [ "$VERSION" != "$MODPACKVER" ]; then
+    echo "Warning: tModLoader version (${VERSION}) does not match Modpack version (${MODPACKVER})"
+  fi
+fi
+  
 
 # Run the variables script to check and process server variables
 # shellcheck source=./variables.sh
