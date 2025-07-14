@@ -9,7 +9,7 @@ fi
 if ! getent passwd terraria > /dev/null 2>&1; then
   adduser -u "$PUID" -G terraria -s /bin/sh -D terraria
 fi
-chown -R "$PUID:$PGID" /opt/terraria
+chown -R terraria:terraria /opt/terraria
 
-exec su-exec "$PUID:$PGID" "/opt/terraria/server.sh"
+exec su-exec terraria:terraria "/opt/terraria/server.sh"
 

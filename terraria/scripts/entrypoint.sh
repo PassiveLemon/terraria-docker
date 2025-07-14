@@ -9,7 +9,7 @@ fi
 if ! getent passwd terraria > /dev/null 2>&1; then
   useradd -u "$PUID" -g terraria -s /bin/sh -m terraria
 fi
-chown -R "$PUID:$PGID" /opt/terraria
+chown -R terraria:terraria /opt/terraria
 
-exec gosu "$PUID:$PGID" "/opt/terraria/server.sh"
+exec gosu terraria:terraria "/opt/terraria/server.sh"
 
