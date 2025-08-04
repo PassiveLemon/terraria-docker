@@ -2,5 +2,5 @@
 
 set -e
 
-tmux send-keys "$1" Enter
+su-exec terraria:terraria /usr/bin/tmux send-keys "$1" Enter
 

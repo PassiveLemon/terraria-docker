@@ -4,7 +4,7 @@ services:
     build:
       context: .
       args:
-        VERSION: "2025.05.3.0"
+        VERSION: "2025.06.3.0"
     container_name: test-tmodloader-docker
     ports:
       - 7777:7777

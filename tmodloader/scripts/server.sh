@@ -52,7 +52,7 @@ fi
 tmux new-session -d "/opt/terraria/server/start-tModLoaderServer.sh -config /opt/terraria/server/serverconfig.txt | tee $pipe"
 
 # Sometimes the server doesn't start immediately and hangs. This basically just pokes it into starting.
-inject "help"
+/usr/bin/tmux send-keys "help" Enter
 
 # Read out pipe to display in docker logs
 cat $pipe &
