@@ -177,7 +177,7 @@ services:
     volumes:
       - /opt/terrariaServer/:/opt/terraria/config/
     environment:
-      WORLD: "myworld"
+      WORLDNAME: "myworld"
 ```
 
 ## Healthcheck
