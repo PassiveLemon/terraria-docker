@@ -1,6 +1,12 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 set -e
 
-su-exec terraria:terraria /usr/bin/tmux send-keys "$1" Enter
+ID=$(id -u)
+
+if [ "$ID" = "0" ]; then
+  su-exec terraria:terraria /usr/bin/tmux send-keys "$1" Enter
+else
+  /usr/bin/tmux send-keys "$1" Enter
+fi
 

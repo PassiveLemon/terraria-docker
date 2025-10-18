@@ -13,8 +13,8 @@ pipe=/tmp/pipe.pipe
 # Shutdown function to send the notice, signal, and ensure its shutdown before exiting
 function shutdown () {
   echo "Stopping server..."
-  inject "say Shutting down server in 3 seconds..."
-  sleep 3s
+  inject "say Shutting down server in 5 seconds..."
+  sleep 5s
   inject "exit"
   tmuxPid=$(pgrep tmux)
   while [ -e "/proc/$tmuxPid" ]; do
@@ -40,7 +40,7 @@ fi
 tmux new-session -d "/opt/terraria/server/TerrariaServer -config /opt/terraria/server/serverconfig.txt | tee $pipe"
 
 # Sometimes the server doesn't start immediately and hangs. This basically just pokes it into starting.
-/usr/bin/tmux send-keys "help" Enter
+inject "help"
 
 # Read out pipe to display in docker logs
 cat $pipe &
