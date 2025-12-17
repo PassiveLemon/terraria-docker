@@ -42,9 +42,9 @@ jobs:
 
           curl -s https://api.github.com/repos/tModLoader/tModLoader/releases > output.txt
           if [ "$TYPE" == "prerelease" ]; then
-            VERSION=$(jq -r '[.[] | select(.tag_name | contains("'"${YEAR}"'")) | select(.prerelease == true)] | max_by(.created_at) | .tag_name | sub("^v";"")' output.txt)
+            VERSION=$(jq -r '[.[] | select(.tag_name | contains("'"${YEAR}"'")) | select(.prerelease == true)] | max_by(.published_at) | .tag_name | sub("^v";"")' output.txt)
           else
-            VERSION=$(jq -r '[.[] | select(.tag_name | contains("'"${YEAR}"'")) | select(.prerelease == false)] | max_by(.created_at) | .tag_name | sub("^v";"")' output.txt)
+            VERSION=$(jq -r '[.[] | select(.tag_name | contains("'"${YEAR}"'")) | select(.prerelease == false)] | max_by(.published_at) | .tag_name | sub("^v";"")' output.txt)
           fi
 
           UPSTREAM=$(curl -s "https://hub.docker.com/v2/repositories/passivelemon/terraria-docker/tags/tmodloader-${VERSION}")
