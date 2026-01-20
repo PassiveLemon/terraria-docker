@@ -159,7 +159,6 @@ services:
 | `-v <config_dir>:/opt/terraria/config` | Yes | Sets the directory that holds the configs like your worlds and serverconfig.txt. This should be the place you chose at the beginning. |
 | `passivelemon/terraria-docker:terraria-latest` | Yes | The Docker image. By default, it is the latest version. |
 
-
 ## Examples
 ### Docker run
 ```
@@ -240,15 +239,21 @@ You will also need a port. If you didn't change the defaults, it will just be 77
 
 More info on the [Fandom](https://terraria.fandom.com/wiki/Guide:Setting_up_a_Terraria_server#PF) and at [whatismyip.com/port-forwarding/](https://www.whatismyip.com/port-forwarding/).
 
-# 9. The end
-Assuming you did everything correctly, you should have a functional server that will automatically load the world upon start.
-
-Have fun!
-
+# 9. Other
 ## Command injection
 You can run the command `docker exec <container name> inject "<command>"` to inject a command directly into the server. An example: `docker exec terraria inject "say Hello from the server!"`
 
 More info on the [Terraria Wiki](https://terraria.wiki.gg/wiki/Server#List_of_console_commands).
+
+## Caching dotnet
+If you would like for the container to not attempt to download dotnet every boot, then add a volume flag to your container to `/opt/terraria/server/dotnet/`. Ex: `-v <config_dir>/dotnet_cache`.
+
+Just beware that there could be versioning issues in the future if the target dotnet runtime version is updated, hence why the dotnet runtime is not saved by default.
+
+# 10. The end
+Assuming you did everything correctly, you should have a functional server that will automatically load the world upon start.
+
+Have fun!
 
 # Credits
 [rfvgyhn](https://github.com/rfvgyhn/tmodloader-docker) for the server injection functionality.

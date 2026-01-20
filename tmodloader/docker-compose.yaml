@@ -4,12 +4,13 @@ services:
     build:
       context: .
       args:
-        VERSION: "2025.06.3.0"
+        VERSION: "2025.11.3.1"
     container_name: test-tmodloader-docker
     ports:
       - 7777:7777
     volumes:
       - ./test/:/opt/terraria/config/
+      - ./test/dotnet-cache/:/opt/terraria/server/dotnet/
     environment:
       PUID: "${PUID}"
       PGID: "${PGID}"
