@@ -4,8 +4,8 @@ services:
     build:
       context: .
       args:
-        VERSION: "1.4.4.9"
-        VERSIONTRIM: "1449"
+        VERSION: "1.4.5.0"
+        VERSIONTRIM: "1450"
     container_name: test-terraria-docker
     ports:
       - 7777:7777

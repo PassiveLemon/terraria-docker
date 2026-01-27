@@ -21,7 +21,7 @@ jobs:
         run: |
           TERRARIA="${{ github.event.release.tag_name }}"
           TERRARIATRIM=$(echo \"$TERRARIA\" | jq 'gsub("\\."; "")')
-          echo "Latest Terraria release is ${TERRARIA} (${$TERRARIATRIM})." >> "$GITHUB_STEP_SUMMARY"
+          echo "Latest Terraria release is ${TERRARIA} (${TERRARIATRIM})." >> "$GITHUB_STEP_SUMMARY"
           echo "latest_terraria=$TERRARIA" >> "$GITHUB_OUTPUT"
           echo "latest_terraria_trim=$TERRARIATRIM" >> "$GITHUB_OUTPUT"
 
