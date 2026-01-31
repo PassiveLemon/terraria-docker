@@ -14,10 +14,4 @@ services:
     environment:
       PUID: "${PUID}"
       PGID: "${PGID}"
-    healthcheck:
-      test: "nc -vz 127.0.0.1 7777 || exit 1"
-      interval: 30s
-      timeout: 5s
-      start_period: 10s
-      retries: 3
 
