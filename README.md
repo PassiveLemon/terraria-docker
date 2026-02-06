@@ -96,6 +96,9 @@ Ideally, you shouldn't include any client side only mods in the modpack folder f
 
 Make sure the modpack has an `enabled.json` with the mods you want or else the server will not start.
 
+> [!CAUTION]
+> Due to a bug in tModLoader, modConfigs will not function properly. More details in https://github.com/PassiveLemon/terraria-docker/issues/8
+
 # 4. Worlds
 <b>If you want to continue on an existing world, follow this step. Otherwise, just skip it. The server will generate a new world automatically.</b>
 
