@@ -46,6 +46,7 @@ Server configuration details on the [Terraria Wiki](https://terraria.wiki.gg/wik
 ### Server variables
 > [!CRITICAL]
 > In order to prevent world corruption, autocreate does not have a default value for the vanilla Terraria Docker image (This doesn't affect tModLoader). If autocreate is set smaller than your current world size, you will likely experience some world corruption. Bug report [here](https://forums.terraria.org/index.php?threads/world-breaks-for-dedicated-servers-if-autocreate-config-option-is-set-incorrectly.146226/). This corruption is not permanent, only visual.
+
 | Variable | Options | Default | Details |
 |:-|:-|:-|:-|
 | `AUTOCREATE` | `1` `2` `3`| `NA` (Vanilla), `2` (TML) | The world size to autocreate if the worldname is not found. |
