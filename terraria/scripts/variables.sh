@@ -5,7 +5,9 @@ set -e
 declare -A VAR_ARRAY
 
 # Define server variables for config pasting later. Very crude and ugly
-VAR_ARRAY[AUTOCREATEx]="autocreate=${AUTOCREATE}"
+if [ "$AUTOCREATE" != "" ]; then
+  VAR_ARRAY[AUTOCREATEx]="autocreate=${AUTOCREATE}"
+fi
 VAR_ARRAY[DIFFICULTYx]="difficulty=${DIFFICULTY}"
 VAR_ARRAY[BANLISTx]="banlist=${BANLIST}"
 VAR_ARRAY[LANGUAGEx]="language=${LANGUAGE}"
