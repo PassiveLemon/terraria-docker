@@ -1,33 +1,38 @@
-FROM docker.io/debian:latest
-# These come from the workflow --build-args
-ARG VERSION
+# Prepare
+FROM docker.io/alpine:latest AS prepare
+# VERSIONTRIM comes from the main.yml workflow --build-arg
 ARG VERSIONTRIM
 
 RUN mkdir -p /opt/terraria/server/ &&\
-    mkdir -p /opt/terraria/config/Worlds
-
-COPY scripts/entrypoint.sh /opt/terraria/
-COPY scripts/variables.sh /opt/terraria/
-COPY scripts/server.sh /opt/terraria/
-COPY scripts/inject.sh /usr/local/bin/inject
-
-RUN chmod -R 775 /opt/terraria/ &&\
-    chmod +x /opt/terraria/entrypoint.sh &&\
-    chmod +x /opt/terraria/server.sh &&\
-    chmod 755 /usr/local/bin/inject
+    chmod -R 775 /opt/terraria/
 
 WORKDIR /opt/terraria/server/
 
-RUN apt-get update -y &&\
-    apt-get install -y curl unzip
+RUN apk add --no-cache curl unzip
 
 RUN curl -Lo ./Terraria.zip https://terraria.org/api/download/pc-dedicated-server/terraria-server-${VERSIONTRIM}.zip &&\
     unzip -jo ./Terraria.zip "${VERSIONTRIM}/Linux/*" &&\
     rm ./Terraria.zip &&\
     chmod +x ./TerrariaServer*
 
+
+# Main
+FROM docker.io/debian:latest
+# VERSION comes from the main.yml workflow --build-arg
+ARG VERSION
+
+RUN mkdir -p /opt/terraria/config/Worlds &&\
+    chmod -R 775 /opt/terraria/
+
+COPY --chmod=755 scripts/entrypoint.sh /opt/terraria/
+COPY --chmod=755 scripts/variables.sh /opt/terraria/
+COPY --chmod=755 scripts/server.sh /opt/terraria/
+COPY --chmod=755 scripts/inject.sh /usr/local/bin/inject
+
 RUN apt-get update -y &&\
     apt-get install -y netcat-openbsd bash gosu procps libicu-dev tmux
+
+COPY --from=prepare /opt/terraria/server/ /opt/terraria/server/
 
 ENV PUID="1000"
 ENV PGID="1000"

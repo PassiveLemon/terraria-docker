@@ -1,5 +1,10 @@
 name: (Terraria) Build and push Docker image
 
+env:
+  DOCKER_ACCOUNT: passivelemon
+  DOCKER_REPO: terraria-docker
+  DOCKER_REPO_TAG_CACHE_NAME: buildcache
+
 on:
   workflow_dispatch:
     inputs:
@@ -49,10 +54,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_PASSWORD }}
 
-      - name: Pull last image for layer reuse
-        run: |
-          docker pull docker.io/passivelemon/terraria-docker:terraria-latest
-
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
@@ -69,6 +70,6 @@ jobs:
             ghcr.io/passivelemon/terraria-docker:latest
             ghcr.io/passivelemon/terraria-docker:terraria-latest
             ghcr.io/passivelemon/terraria-docker:terraria-${{ inputs.version }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=${{ env.DOCKER_ACCOUNT }}/${{ env.DOCKER_REPO }}:${{ env.DOCKER_REPO_TAG_CACHE_NAME }}
+          cache-to: type=registry,ref=${{ env.DOCKER_ACCOUNT }}/${{ env.DOCKER_REPO }}:${{ env.DOCKER_REPO_TAG_CACHE_NAME }},mode=max
 

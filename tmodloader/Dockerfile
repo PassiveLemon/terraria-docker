@@ -1,24 +1,13 @@
-FROM docker.io/alpine:latest
+# Prepare
+FROM docker.io/alpine:latest AS prepare
 # VERSION comes from the main.yml workflow --build-arg
 ARG VERSION
 
 RUN mkdir -p /opt/terraria/server/ &&\
-    mkdir -p /opt/terraria/config/ModPacks &&\
-    mkdir -p /opt/terraria/config/Worlds
-
-COPY scripts/entrypoint.sh /opt/terraria/
-COPY scripts/variables.sh /opt/terraria/
-COPY scripts/server.sh /opt/terraria/
-COPY scripts/inject.sh /usr/local/bin/inject
-
-RUN chmod -R 775 /opt/terraria/ &&\
-    chmod +x /opt/terraria/entrypoint.sh &&\
-    chmod +x /opt/terraria/server.sh &&\
-    chmod 755 /usr/local/bin/inject
+    chmod -R 775 /opt/terraria/
 
 WORKDIR /opt/terraria/server/
 
-# Split this off to a builder step
 RUN apk add --no-cache curl unzip
 
 RUN curl -Lo ./tModLoader.zip https://github.com/tModLoader/tModLoader/releases/download/v${VERSION}/tModLoader.zip &&\
@@ -27,7 +16,24 @@ RUN curl -Lo ./tModLoader.zip https://github.com/tModLoader/tModLoader/releases/
     rm ./serverconfig.txt &&\
     chmod +x ./start-tModLoaderServer.sh
 
+
+# Main
+FROM docker.io/alpine:latest
+# VERSION comes from the main.yml workflow --build-arg
+ARG VERSION
+
+RUN mkdir -p /opt/terraria/config/ModPacks &&\
+    mkdir -p /opt/terraria/config/Worlds &&\
+    chmod -R 775 /opt/terraria/
+
+COPY --chmod=755 scripts/entrypoint.sh /opt/terraria/
+COPY --chmod=755 scripts/variables.sh /opt/terraria/
+COPY --chmod=755 scripts/server.sh /opt/terraria/
+COPY --chmod=755 scripts/inject.sh /usr/local/bin/inject
+
 RUN apk add --no-cache netcat-openbsd bash su-exec grep icu-dev tmux
+
+COPY --from=prepare /opt/terraria/server/ /opt/terraria/server/
 
 ENV PUID="1000"
 ENV PGID="1000"

@@ -1,5 +1,10 @@
 name: (tModLoader) Build and push Docker image
 
+env:
+  DOCKER_ACCOUNT: passivelemon
+  DOCKER_REPO: terraria-docker
+  DOCKER_REPO_TAG_CACHE_NAME: buildcache
+
 on:
   workflow_dispatch:
     inputs:
@@ -58,10 +63,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_PASSWORD }}
 
-      - name: Pull last image for layer reuse
-        run: |
-          docker pull docker.io/passivelemon/terraria-docker:tmodloader-latest
-
       - name: Build and push Docker image (Pre-release)
         uses: docker/build-push-action@v6
         if: ${{ inputs.type == 'prerelease' }}
@@ -77,8 +78,8 @@ jobs:
             ghcr.io/passivelemon/terraria-docker:tmodloader-latest-pre
             ghcr.io/passivelemon/terraria-docker:tmodloader-${{ inputs.year }}-pre
             ghcr.io/passivelemon/terraria-docker:tmodloader-${{ inputs.version }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=${{ env.DOCKER_ACCOUNT }}/${{ env.DOCKER_REPO }}:${{ env.DOCKER_REPO_TAG_CACHE_NAME }}
+          cache-to: type=registry,ref=${{ env.DOCKER_ACCOUNT }}/${{ env.DOCKER_REPO }}:${{ env.DOCKER_REPO_TAG_CACHE_NAME }},mode=max
 
       - name: Build and push Docker image (Release)
         uses: docker/build-push-action@v6
@@ -95,6 +96,6 @@ jobs:
             ghcr.io/passivelemon/terraria-docker:tmodloader-latest
             ghcr.io/passivelemon/terraria-docker:tmodloader-${{ inputs.year }}
             ghcr.io/passivelemon/terraria-docker:tmodloader-${{ inputs.version }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=${{ env.DOCKER_ACCOUNT }}/${{ env.DOCKER_REPO }}:${{ env.DOCKER_REPO_TAG_CACHE_NAME }}
+          cache-to: type=registry,ref=${{ env.DOCKER_ACCOUNT }}/${{ env.DOCKER_REPO }}:${{ env.DOCKER_REPO_TAG_CACHE_NAME }},mode=max
 
