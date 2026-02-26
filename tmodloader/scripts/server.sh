@@ -49,7 +49,7 @@ echo "Starting server with modpack ${MODPACK}..."
 if [ ! -p "$pipe" ]; then
   mkfifo $pipe
 fi
-tmux new-session -d "/opt/terraria/server/start-tModLoaderServer.sh -config /opt/terraria/server/serverconfig.txt | tee $pipe"
+tmux new-session -d "/opt/terraria/server/start-tModLoaderServer.sh -tmlsavedirectory /opt/terraria/config -config /opt/terraria/server/serverconfig.txt | tee $pipe"
 
 # Sometimes the server doesn't start immediately and hangs. This basically just pokes it into starting.
 inject "help"
