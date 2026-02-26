@@ -3,7 +3,7 @@ name: (tModLoader) Build and push Docker image
 env:
   DOCKER_ACCOUNT: passivelemon
   DOCKER_REPO: terraria-docker
-  DOCKER_REPO_TAG_CACHE_NAME: buildcache
+  DOCKER_REPO_TAG_CACHE_NAME: buildcache-tmodloader
 
 on:
   workflow_dispatch:
