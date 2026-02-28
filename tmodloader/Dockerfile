@@ -1,26 +1,23 @@
-# Prepare
+## Prepare
 FROM docker.io/alpine:latest AS prepare
-# VERSION comes from the main.yml workflow --build-arg
-ARG VERSION
+RUN apk add --no-cache curl unzip
 
 RUN mkdir -p /opt/terraria/server/ &&\
     chmod -R 775 /opt/terraria/
 
 WORKDIR /opt/terraria/server/
 
-RUN apk add --no-cache curl unzip
-
-RUN curl -Lo ./tModLoader.zip https://github.com/tModLoader/tModLoader/releases/download/v${VERSION}/tModLoader.zip &&\
+ARG TMLVERSION
+RUN curl -Lo ./tModLoader.zip https://github.com/tModLoader/tModLoader/releases/download/v${TMLVERSION}/tModLoader.zip &&\
     unzip -o ./tModLoader.zip &&\
     rm ./tModLoader.zip &&\
     rm ./serverconfig.txt &&\
     chmod +x ./start-tModLoaderServer.sh
 
 
-# Main
+## Main
 FROM docker.io/alpine:latest
-# VERSION comes from the main.yml workflow --build-arg
-ARG VERSION
+RUN apk add --no-cache tzdata netcat-openbsd bash su-exec grep icu-dev tmux
 
 RUN mkdir -p /opt/terraria/config/ModPacks &&\
     mkdir -p /opt/terraria/config/Worlds &&\
@@ -31,14 +28,14 @@ COPY --chmod=755 scripts/variables.sh /opt/terraria/
 COPY --chmod=755 scripts/server.sh /opt/terraria/
 COPY --chmod=755 scripts/inject.sh /usr/local/bin/inject
 
-RUN apk add --no-cache netcat-openbsd bash su-exec grep icu-dev tmux
-
 COPY --from=prepare /opt/terraria/server/ /opt/terraria/server/
 
+ENV TZ="Etc/UTC"
 ENV PUID="1000"
 ENV PGID="1000"
 
-ENV VERSION=$VERSION
+ARG TMLVERSION
+ENV VERSION=$TMLVERSION
 
 ENV SERVERCONFIG="0"
 

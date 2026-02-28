@@ -1,25 +1,23 @@
-# Prepare
+## Prepare
 FROM docker.io/alpine:latest AS prepare
-# VERSIONTRIM comes from the main.yml workflow --build-arg
-ARG VERSIONTRIM
+RUN apk add --no-cache curl unzip
 
 RUN mkdir -p /opt/terraria/server/ &&\
     chmod -R 775 /opt/terraria/
 
 WORKDIR /opt/terraria/server/
 
-RUN apk add --no-cache curl unzip
-
-RUN curl -Lo ./Terraria.zip https://terraria.org/api/download/pc-dedicated-server/terraria-server-${VERSIONTRIM}.zip &&\
-    unzip -jo ./Terraria.zip "${VERSIONTRIM}/Linux/*" &&\
+ARG TVERSIONTRIM
+RUN curl -Lo ./Terraria.zip https://terraria.org/api/download/pc-dedicated-server/terraria-server-${TVERSIONTRIM}.zip &&\
+    unzip -jo ./Terraria.zip "${TVERSIONTRIM}/Linux/*" &&\
     rm ./Terraria.zip &&\
     chmod +x ./TerrariaServer*
 
 
-# Main
+## Main
 FROM docker.io/debian:latest
-# VERSION comes from the main.yml workflow --build-arg
-ARG VERSION
+RUN apt-get update -y &&\
+    apt-get install -y tzdata netcat-openbsd bash gosu procps libicu-dev tmux
 
 RUN mkdir -p /opt/terraria/config/Worlds &&\
     chmod -R 775 /opt/terraria/
@@ -29,15 +27,14 @@ COPY --chmod=755 scripts/variables.sh /opt/terraria/
 COPY --chmod=755 scripts/server.sh /opt/terraria/
 COPY --chmod=755 scripts/inject.sh /usr/local/bin/inject
 
-RUN apt-get update -y &&\
-    apt-get install -y netcat-openbsd bash gosu procps libicu-dev tmux
-
 COPY --from=prepare /opt/terraria/server/ /opt/terraria/server/
 
+ENV TZ="Etc/UTC"
 ENV PUID="1000"
 ENV PGID="1000"
 
-ENV VERSION=$VERSION
+ARG TVERSION
+ENV VERSION=$TVERSION
 
 ENV SERVERCONFIG="0"
 

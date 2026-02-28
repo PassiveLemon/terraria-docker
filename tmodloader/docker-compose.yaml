@@ -8,6 +8,7 @@ services:
       - ./test/:/opt/terraria/config/
       - ./test/dotnet-cache/:/opt/terraria/server/dotnet/
     environment:
+      TZ: "America/New_York"
       PUID: "${PUID}"
       PGID: "${PGID}"
       MODPACK: "testpack"
