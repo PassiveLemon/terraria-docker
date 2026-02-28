@@ -1,11 +1,6 @@
 services:
   test-terraria-docker:
-    pull_policy: build
-    build:
-      context: .
-      args:
-        VERSION: "1.4.5.5"
-        VERSIONTRIM: "1455"
+    image: test-terraria
     container_name: test-terraria-docker
     ports:
       - 7777:7777
