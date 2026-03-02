@@ -61,8 +61,8 @@ jobs:
           push: true
           platforms: linux/amd64
           build-args: |
-            VERSION=${{ inputs.version }}
-            VERSIONTRIM=${{ inputs.version_trim }}
+            TVERSION=${{ inputs.version }}
+            TVERSIONTRIM=${{ inputs.version_trim }}
           tags: |
             passivelemon/terraria-docker:latest
             passivelemon/terraria-docker:terraria-latest
