@@ -28,6 +28,9 @@ if [ "$SEED" != "" ]; then
   VAR_ARRAY[SEEDx]="seed=${SEED}"
 fi
 VAR_ARRAY[UPNPx]="upnp=${UPNP}"
+if [ "$WORLDEVIL" != "" ]; then
+  VAR_ARRAY[WORLDEVILx]="worldevil=${WORLDEVIL}"
+fi
 VAR_ARRAY[WORLDNAMEx]="worldname=${WORLDNAME}"
 
 # Journey mode
