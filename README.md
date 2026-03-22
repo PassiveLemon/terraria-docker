@@ -258,6 +258,28 @@ Assuming you did everything correctly, you should have a functional server that 
 
 Have fun!
 
+# GUI
+A web-based management interface is available in the `gui/` directory. It provides a browser UI for managing one or more Terraria or tModLoader containers running on the same Docker host.
+
+Features:
+- Live console output and command injection
+- Start, stop, and restart servers
+- File manager (browse, view, and upload files inside the container)
+- Online player list
+- Create new servers (vanilla or tModLoader, new world or import, world evil type, port, difficulty, and more)
+- Upload modpacks for tModLoader servers
+
+## GUI Setup
+1. Set a password in `gui/docker-compose.yaml` under `GUI_PASSWORD`.
+2. Run the GUI alongside your existing server:
+  - ```docker compose -f gui/docker-compose.yaml up -d```
+3. Open `http://localhost:3000` in your browser.
+
+The GUI discovers Terraria containers automatically by image name — no extra configuration needed.
+
+> [!NOTE]
+> The GUI requires access to the Docker socket (`/var/run/docker.sock`). Only run it in environments you trust.
+
 # Credits
 [rfvgyhn](https://github.com/rfvgyhn/tmodloader-docker) for the server injection functionality.
 

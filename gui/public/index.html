@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Terraria Server GUI</title>
+  <link rel="icon" type="image/png" href="/terraria-icon.png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { background: #111827; color: #f3f4f6; margin: 0; }
+    .console-box { font-family: 'Courier New', Courier, monospace; font-size: 12px; line-height: 1.6; white-space: pre-wrap; word-break: break-all; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ── API helpers ───────────────────────────────────────────────────────
+
+const getToken = () => localStorage.getItem('token');
+
+async function api(method, path, body, isFormData) {
+  const opts = { method, headers: { Authorization: `Bearer ${getToken()}` } };
+  if (body && !isFormData) {
+    opts.headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(body);
+  } else if (body) {
+    opts.body = body;
+  }
+  const r = await fetch(path, opts);
+  if (r.status === 401) { localStorage.removeItem('token'); window.location.reload(); }
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.statusText);
+  return r.json();
+}
+
+// ── Shared components ─────────────────────────────────────────────────
+
+function StatusDot({ state }) {
+  return (
+    <span className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${state === 'running' ? 'bg-green-400' : 'bg-gray-600'}`} />
+  );
+}
+
+function Btn({ onClick, disabled, className, children }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`px-3 py-1.5 rounded text-sm font-medium transition disabled:opacity-40 disabled:cursor-not-allowed ${className}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ── Login ─────────────────────────────────────────────────────────────
+
+function LoginPage({ onLogin }) {
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      const r = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'Login failed');
+      localStorage.setItem('token', data.token);
+      onLogin();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="bg-gray-800 border border-gray-700 p-8 rounded-xl w-80 shadow-2xl">
+        <div className="text-center mb-6">
+          <img src="/terraria-icon.png" alt="Terraria" className="w-16 h-16 mx-auto mb-2 rounded-xl" />
+          <h1 className="text-lg font-semibold">Terraria Server GUI</h1>
+          <p className="text-sm text-gray-500 mt-1">Enter your password to continue</p>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            autoFocus
+            className="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+          />
+          {error && <p className="text-red-400 text-xs">{error}</p>}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg py-2 text-sm font-medium transition"
+          >
+            {loading ? 'Logging in…' : 'Login'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ── Console tab ───────────────────────────────────────────────────────
+
+function ConsoleView({ containerId, state }) {
+  const [command, setCommand] = useState('');
+  const [logs, setLogs] = useState('');
+  const [sending, setSending] = useState(false);
+  const bottomRef = useRef(null);
+  const logsRef = useRef('');
+  const wsRef = useRef(null);
+
+  useEffect(() => {
+    logsRef.current = '';
+    setLogs('');
+
+    const ws = new WebSocket(`ws://${location.host}/ws?token=${getToken()}`);
+    wsRef.current = ws;
+
+    ws.onopen = () => ws.send(JSON.stringify({ type: 'subscribe', containerId }));
+    ws.onmessage = e => {
+      const msg = JSON.parse(e.data);
+      if (msg.type === 'log' || msg.type === 'error') {
+        logsRef.current += msg.data;
+        // Cap at 5000 lines to avoid unbounded growth
+        const lines = logsRef.current.split('\n');
+        if (lines.length > 5000) logsRef.current = lines.slice(-5000).join('\n');
+        setLogs(logsRef.current);
+      }
+    };
+    ws.onerror = () => {
+      logsRef.current += '\n[WebSocket error — check your connection]\n';
+      setLogs(logsRef.current);
+    };
+
+    return () => ws.close();
+  }, [containerId]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'auto' });
+  }, [logs]);
+
+  async function sendCommand(e) {
+    e.preventDefault();
+    if (!command.trim() || state !== 'running') return;
+    setSending(true);
+    try {
+      await api('POST', `/api/containers/${containerId}/inject`, { command });
+      setCommand('');
+    } catch (e) {
+      logsRef.current += `\n[inject error: ${e.message}]\n`;
+      setLogs(logsRef.current);
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col h-full gap-2">
+      <div className="flex-1 bg-black rounded-lg overflow-y-auto p-3 console-box text-green-300" style={{ minHeight: 0 }}>
+        {logs || <span className="text-gray-600">Connecting to log stream…</span>}
+        <div ref={bottomRef} />
+      </div>
+      <form onSubmit={sendCommand} className="flex gap-2">
+        <input
+          value={command}
+          onChange={e => setCommand(e.target.value)}
+          disabled={state !== 'running'}
+          placeholder={state !== 'running' ? 'Server is stopped' : 'Type a command…'}
+          className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:border-green-600 disabled:opacity-40"
+        />
+        <Btn
+          type="submit"
+          disabled={state !== 'running' || sending}
+          className="bg-green-800 hover:bg-green-700 text-green-100"
+        >
+          Send
+        </Btn>
+      </form>
+    </div>
+  );
+}
+
+// ── Files tab ─────────────────────────────────────────────────────────
+
+function FilesView({ containerId }) {
+  const [dir, setDir] = useState('/opt/terraria/config');
+  const [files, setFiles] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [fileContent, setFileContent] = useState(null); // { path, content }
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const loadDir = useCallback(async d => {
+    setLoading(true);
+    setError('');
+    try {
+      const result = await api('GET', `/api/containers/${containerId}/files?path=${encodeURIComponent(d)}`);
+      setFiles(result);
+      setDir(d);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [containerId]);
+
+  useEffect(() => { loadDir('/opt/terraria/config'); }, [containerId]);
+
+  async function viewFile(filePath) {
+    try {
+      const r = await fetch(`/api/containers/${containerId}/file?path=${encodeURIComponent(filePath)}`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      if (!r.ok) throw new Error(r.statusText);
+      setFileContent({ path: filePath, content: await r.text() });
+    } catch (e) {
+      setError(e.message);
+    }
+  }
+
+  async function handleUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('path', dir);
+    try {
+      await api('POST', `/api/containers/${containerId}/upload`, fd, true);
+      await loadDir(dir);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  }
+
+  // Build breadcrumb segments
+  const segments = dir.split('/').filter(Boolean);
+
+  return (
+    <div className="h-full flex flex-col gap-3">
+      {/* Breadcrumb + toolbar */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1 text-sm text-gray-400 font-mono">
+          <button onClick={() => loadDir('/')} className="hover:text-white">/</button>
+          {segments.map((seg, i) => {
+            const p = '/' + segments.slice(0, i + 1).join('/');
+            return (
+              <React.Fragment key={p}>
+                <span className="text-gray-700">/</span>
+                <button onClick={() => loadDir(p)} className="hover:text-white">{seg}</button>
+              </React.Fragment>
+            );
+          })}
+        </div>
+        <div className="flex gap-2">
+          <Btn onClick={() => loadDir(dir)} className="bg-gray-700 hover:bg-gray-600 text-gray-200">
+            Refresh
+          </Btn>
+          <Btn
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="bg-blue-700 hover:bg-blue-600 text-blue-100"
+          >
+            {uploading ? 'Uploading…' : '↑ Upload'}
+          </Btn>
+          <input ref={fileInputRef} type="file" className="hidden" onChange={handleUpload} />
+        </div>
+      </div>
+
+      {error && <p className="text-red-400 text-xs">{error}</p>}
+
+      {/* File table */}
+      <div className="flex-1 overflow-y-auto rounded-lg border border-gray-800" style={{ minHeight: 0 }}>
+        {loading ? (
+          <p className="p-4 text-sm text-gray-500">Loading…</p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="sticky top-0 bg-gray-900">
+              <tr className="text-gray-500 text-left border-b border-gray-800">
+                <th className="px-4 py-2 font-normal">Name</th>
+                <th className="px-4 py-2 font-normal">Size</th>
+                <th className="px-4 py-2 font-normal">Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dir !== '/' && (
+                <tr
+                  onClick={() => loadDir(dir.split('/').slice(0, -1).join('/') || '/')}
+                  className="border-b border-gray-800 hover:bg-gray-800 cursor-pointer"
+                >
+                  <td className="px-4 py-2 text-gray-400">.. (up)</td>
+                  <td className="px-4 py-2" />
+                  <td className="px-4 py-2" />
+                </tr>
+              )}
+              {files.map(f => (
+                <tr
+                  key={f.path}
+                  onClick={() => f.isDir ? loadDir(f.path) : viewFile(f.path)}
+                  className="border-b border-gray-800 hover:bg-gray-800 cursor-pointer"
+                >
+                  <td className="px-4 py-2">
+                    <span className="mr-2 text-base">{f.isDir ? '📁' : '📄'}</span>
+                    {f.name}
+                  </td>
+                  <td className="px-4 py-2 text-gray-400">{f.isDir ? '—' : f.size}</td>
+                  <td className="px-4 py-2 text-gray-400">{f.isDir ? 'Directory' : 'File'}</td>
+                </tr>
+              ))}
+              {files.length === 0 && (
+                <tr>
+                  <td colSpan="3" className="px-4 py-6 text-gray-600">Empty directory</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* File content modal */}
+      {fileContent && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-8"
+          onClick={() => setFileContent(null)}
+        >
+          <div
+            className="bg-gray-800 border border-gray-700 rounded-xl w-full max-w-3xl flex flex-col gap-3 p-4 shadow-2xl"
+            style={{ maxHeight: '80vh' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-mono text-gray-400 truncate">{fileContent.path}</span>
+              <button onClick={() => setFileContent(null)} className="text-gray-500 hover:text-white ml-4">✕</button>
+            </div>
+            <pre className="flex-1 overflow-auto text-xs font-mono bg-black rounded-lg p-4 text-green-300 console-box">
+              {fileContent.content || '(empty file)'}
+            </pre>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Players tab ───────────────────────────────────────────────────────
+
+function PlayersView({ containerId }) {
+  const [players, setPlayers] = useState({});
+
+  useEffect(() => {
+    setPlayers({});
+    const ws = new WebSocket(`ws://${location.host}/ws?token=${getToken()}`);
+    ws.onopen = () => ws.send(JSON.stringify({ type: 'subscribe', containerId }));
+    ws.onerror = () => {}; // handled via close
+    ws.onmessage = e => {
+      const msg = JSON.parse(e.data);
+      if (msg.type !== 'log') return;
+      msg.data.split('\n').forEach(line => {
+        const joined = line.match(/^(.+?) has joined\.?/i);
+        const left = line.match(/^(.+?) has left\.?/i);
+        if (joined) {
+          const name = joined[1].trim();
+          setPlayers(p => ({ ...p, [name]: { name, since: new Date().toLocaleTimeString() } }));
+        }
+        if (left) {
+          const name = left[1].trim();
+          setPlayers(p => { const next = { ...p }; delete next[name]; return next; });
+        }
+      });
+    };
+    return () => ws.close();
+  }, [containerId]);
+
+  const list = Object.values(players);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="text-sm text-gray-400">
+        {list.length} player{list.length !== 1 ? 's' : ''} online
+        <span className="ml-2 text-xs text-gray-600">(tracked since GUI connected)</span>
+      </p>
+      {list.length === 0 ? (
+        <p className="text-gray-600 text-sm">No players detected yet</p>
+      ) : (
+        <table className="w-full text-sm border border-gray-800 rounded-lg overflow-hidden">
+          <thead className="bg-gray-900">
+            <tr className="text-gray-500 text-left border-b border-gray-800">
+              <th className="px-4 py-2 font-normal">Player</th>
+              <th className="px-4 py-2 font-normal">Joined at</th>
+            </tr>
+          </thead>
+          <tbody>
+            {list.map(p => (
+              <tr key={p.name} className="border-b border-gray-800">
+                <td className="px-4 py-2">{p.name}</td>
+                <td className="px-4 py-2 text-gray-400">{p.since}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
+// ── Create server modal ───────────────────────────────────────────────
+
+function Field({ label, children }) {
+  return (
+    <div>
+      <label className="block text-xs text-gray-400 mb-1">{label}</label>
+      {children}
+    </div>
+  );
+}
+
+function Input({ className = '', ...props }) {
+  return (
+    <input
+      className={`w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 disabled:opacity-40 ${className}`}
+      {...props}
+    />
+  );
+}
+
+function ToggleGroup({ options, value, onChange }) {
+  return (
+    <div className="flex rounded-lg overflow-hidden border border-gray-700">
+      {options.map(o => (
+        <button
+          key={o.value}
+          type="button"
+          onClick={() => onChange(o.value)}
+          className={`flex-1 py-1.5 text-sm transition ${
+            value === o.value
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-900 text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function CreateServerModal({ onClose, onCreated }) {
+  const [type,        setType]        = useState('terraria');
+  const [name,        setName]        = useState('');
+  const [port,        setPort]        = useState('7777');
+  const [worldMode,   setWorldMode]   = useState('new');
+  const [worldName,   setWorldName]   = useState('World');
+  const [autocreate,  setAutocreate]  = useState('2');
+  const [difficulty,  setDifficulty]  = useState('0');
+  const [worldEvil,   setWorldEvil]   = useState('');
+  const [seed,        setSeed]        = useState('');
+  const [password,    setPassword]    = useState('');
+  const [maxPlayers,  setMaxPlayers]  = useState('8');
+  const [worldFile,   setWorldFile]   = useState(null);
+  const [modpackName, setModpackName] = useState('vanilla');
+  const [modpackFile, setModpackFile] = useState(null);
+  const [creating,    setCreating]    = useState(false);
+  const [error,       setError]       = useState('');
+
+  function handleFileChange(e) {
+    const f = e.target.files[0];
+    if (!f) return;
+    setWorldFile(f);
+    // Auto-populate world name from filename
+    setWorldName(f.name.replace(/\.[^.]+$/, ''));
+  }
+
+  async function handleCreate(e) {
+    e.preventDefault();
+    setCreating(true);
+    setError('');
+    try {
+      const fd = new FormData();
+      fd.append('type',        type);
+      fd.append('name',        name || `terraria-${Date.now()}`);
+      fd.append('port',        port);
+      fd.append('worldMode',   worldMode);
+      fd.append('worldName',   worldName);
+      fd.append('autocreate',  autocreate);
+      fd.append('difficulty',  difficulty);
+      fd.append('worldEvil',   worldEvil);
+      fd.append('seed',        seed);
+      fd.append('password',    password);
+      fd.append('maxPlayers',  maxPlayers);
+      fd.append('modpackName', modpackName);
+      if (worldFile)   fd.append('worldFile',   worldFile);
+      if (modpackFile) fd.append('modpackFile', modpackFile);
+      await api('POST', '/api/servers/create', fd, true);
+      onCreated();
+      onClose();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+      <div className="bg-gray-800 border border-gray-700 rounded-xl w-full max-w-lg shadow-2xl flex flex-col max-h-screen overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
+          <h2 className="text-base font-semibold">New Server</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-white transition">✕</button>
+        </div>
+
+        <form onSubmit={handleCreate} className="px-6 py-5 flex flex-col gap-5">
+          {/* Name + type */}
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Server Name">
+              <Input
+                placeholder="my-terraria"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                pattern="[a-zA-Z0-9_-]+"
+                title="Alphanumeric, hyphens and underscores only"
+              />
+            </Field>
+            <Field label="Port">
+              <Input
+                type="number"
+                min="1024"
+                max="65535"
+                value={port}
+                onChange={e => setPort(e.target.value)}
+              />
+            </Field>
+          </div>
+
+          <Field label="Server Type">
+            <ToggleGroup
+              options={[
+                { label: 'Vanilla Terraria', value: 'terraria' },
+                { label: 'tModLoader',        value: 'tmodloader' },
+              ]}
+              value={type}
+              onChange={setType}
+            />
+          </Field>
+
+          {/* World section */}
+          <div className="border border-gray-700 rounded-lg p-4 flex flex-col gap-4">
+            <div>
+              <p className="text-xs text-gray-400 mb-2">World</p>
+              <ToggleGroup
+                options={[
+                  { label: 'Create New', value: 'new'    },
+                  { label: 'Import',     value: 'import' },
+                ]}
+                value={worldMode}
+                onChange={setWorldMode}
+              />
+            </div>
+
+            {worldMode === 'new' ? (
+              <>
+                <Field label="World Name">
+                  <Input value={worldName} onChange={e => setWorldName(e.target.value)} />
+                </Field>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field label="Size">
+                    <ToggleGroup
+                      options={[
+                        { label: 'Small',  value: '1' },
+                        { label: 'Medium', value: '2' },
+                        { label: 'Large',  value: '3' },
+                      ]}
+                      value={autocreate}
+                      onChange={setAutocreate}
+                    />
+                  </Field>
+                  <Field label="Difficulty">
+                    <select
+                      value={difficulty}
+                      onChange={e => setDifficulty(e.target.value)}
+                      className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                    >
+                      <option value="0">Normal</option>
+                      <option value="1">Expert</option>
+                      <option value="2">Master</option>
+                      <option value="3">Journey</option>
+                    </select>
+                  </Field>
+                </div>
+                <Field label="World Evil">
+                  <ToggleGroup
+                    options={[
+                      { label: 'Random',     value: ''  },
+                      { label: 'Corruption', value: '1' },
+                      { label: 'Crimson',    value: '2' },
+                    ]}
+                    value={worldEvil}
+                    onChange={setWorldEvil}
+                  />
+                </Field>
+                <Field label="Seed (optional)">
+                  <Input placeholder="Leave blank for random" value={seed} onChange={e => setSeed(e.target.value)} />
+                </Field>
+              </>
+            ) : (
+              <>
+                <Field label="World File (.wld)">
+                  <input
+                    type="file"
+                    accept=".wld"
+                    onChange={handleFileChange}
+                    className="w-full text-sm text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:bg-gray-700 file:text-gray-200 hover:file:bg-gray-600 cursor-pointer"
+                  />
+                </Field>
+                <Field label="World Name">
+                  <Input
+                    value={worldName}
+                    onChange={e => setWorldName(e.target.value)}
+                    placeholder="Auto-filled from filename"
+                  />
+                </Field>
+              </>
+            )}
+          </div>
+
+          {/* Modpack (tModLoader only) */}
+          {type === 'tmodloader' && (
+            <div className="border border-gray-700 rounded-lg p-4 flex flex-col gap-4">
+              <p className="text-xs text-gray-400">Modpack</p>
+              <Field label="Modpack Name">
+                <Input
+                  placeholder="vanilla"
+                  value={modpackName}
+                  onChange={e => setModpackName(e.target.value)}
+                />
+              </Field>
+              <Field label="Modpack Zip (optional)">
+                <input
+                  type="file"
+                  accept=".zip"
+                  onChange={e => setModpackFile(e.target.files[0] || null)}
+                  className="w-full text-sm text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:bg-gray-700 file:text-gray-200 hover:file:bg-gray-600 cursor-pointer"
+                />
+                <p className="text-xs text-gray-600 mt-1">
+                  Zip the contents of your ModPacks/&lt;name&gt;/Mods/ folder. Leave blank to start with no mods.
+                </p>
+              </Field>
+            </div>
+          )}
+
+          {/* Advanced */}
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Max Players">
+              <Input type="number" min="1" max="255" value={maxPlayers} onChange={e => setMaxPlayers(e.target.value)} />
+            </Field>
+            <Field label="Password (optional)">
+              <Input type="password" placeholder="None" value={password} onChange={e => setPassword(e.target.value)} />
+            </Field>
+          </div>
+
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+
+          {creating && (
+            <p className="text-gray-400 text-sm text-center">
+              Creating server… this may take a minute on first run.
+            </p>
+          )}
+
+          <div className="flex justify-end gap-3 pt-1">
+            <Btn type="button" onClick={onClose} className="bg-gray-700 hover:bg-gray-600 text-gray-200">
+              Cancel
+            </Btn>
+            <Btn type="submit" disabled={creating} className="bg-blue-600 hover:bg-blue-700 text-white">
+              {creating ? 'Creating…' : 'Create Server'}
+            </Btn>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ── Server panel ──────────────────────────────────────────────────────
+
+function ServerPanel({ container, onRefresh, onDeleted }) {
+  const [tab,      setTab]      = useState('console');
+  const [acting,   setActing]   = useState(false);
+  const [deleting, setDeleting] = useState(false); // false | 'confirm'
+
+  async function doAction(action) {
+    setActing(true);
+    try {
+      await api('POST', `/api/containers/${container.id}/${action}`);
+      setTimeout(onRefresh, 1500);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setActing(false);
+    }
+  }
+
+  async function doDelete(deleteVolume) {
+    setActing(true);
+    try {
+      await api('DELETE', `/api/containers/${container.id}?deleteVolume=${deleteVolume}`);
+      onDeleted();
+    } catch (e) {
+      console.error(e);
+      setActing(false);
+      setDeleting(false);
+    }
+  }
+
+  const isRunning = container.state === 'running';
+  const tabs = ['console', 'files', 'players'];
+
+  return (
+    <div className="flex flex-col h-full gap-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-base font-semibold">{container.name}</h2>
+          <p className="text-xs text-gray-500 mt-0.5">{container.type} · {container.status}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Delete / confirm */}
+          {deleting === 'confirm' ? (
+            <div className="flex items-center gap-2 bg-gray-800 border border-red-800 rounded-lg px-3 py-1.5">
+              <span className="text-xs text-gray-300">Also delete world data?</span>
+              <button
+                onClick={() => doDelete(true)}
+                disabled={acting}
+                className="text-xs text-red-400 hover:text-red-300 font-medium disabled:opacity-40"
+              >
+                Yes, delete all
+              </button>
+              <span className="text-gray-600">·</span>
+              <button
+                onClick={() => doDelete(false)}
+                disabled={acting}
+                className="text-xs text-gray-400 hover:text-gray-200 disabled:opacity-40"
+              >
+                Keep data
+              </button>
+              <span className="text-gray-600">·</span>
+              <button
+                onClick={() => setDeleting(false)}
+                className="text-xs text-gray-600 hover:text-gray-400"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <Btn
+              onClick={() => setDeleting('confirm')}
+              disabled={acting}
+              className="bg-gray-700 hover:bg-red-900 text-gray-400 hover:text-red-300"
+            >
+              Delete
+            </Btn>
+          )}
+
+          <div className="w-px h-5 bg-gray-700" />
+
+          {!isRunning && (
+            <Btn onClick={() => doAction('start')} disabled={acting} className="bg-green-800 hover:bg-green-700 text-green-100">
+              Start
+            </Btn>
+          )}
+          {isRunning && (
+            <Btn onClick={() => doAction('restart')} disabled={acting} className="bg-yellow-800 hover:bg-yellow-700 text-yellow-100">
+              Restart
+            </Btn>
+          )}
+          {isRunning && (
+            <Btn onClick={() => doAction('stop')} disabled={acting} className="bg-red-800 hover:bg-red-700 text-red-100">
+              Stop
+            </Btn>
+          )}
+        </div>
+      </div>
+
+      {/* Tab bar */}
+      <div className="flex gap-0 border-b border-gray-800">
+        {tabs.map(t => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-4 py-2 text-sm capitalize border-b-2 transition ${
+              tab === t
+                ? 'border-blue-500 text-blue-400'
+                : 'border-transparent text-gray-500 hover:text-gray-300'
+            }`}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab content */}
+      <div className="flex-1 overflow-hidden" style={{ minHeight: 0 }}>
+        {tab === 'console' && <ConsoleView containerId={container.id} state={container.state} />}
+        {tab === 'files'   && <FilesView   containerId={container.id} />}
+        {tab === 'players' && <PlayersView  containerId={container.id} />}
+      </div>
+    </div>
+  );
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────
+
+function Dashboard() {
+  const [containers,   setContainers]   = useState([]);
+  const [selected,     setSelected]     = useState(null);
+  const [showCreate,   setShowCreate]   = useState(false);
+
+  async function loadContainers() {
+    try {
+      const list = await api('GET', '/api/containers');
+      setContainers(list);
+      setSelected(prev => {
+        if (prev && list.find(c => c.id === prev)) return prev;
+        return list[0]?.id || null;
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  useEffect(() => {
+    loadContainers();
+    const iv = setInterval(loadContainers, 10000);
+    return () => clearInterval(iv);
+  }, []);
+
+  function logout() {
+    localStorage.removeItem('token');
+    window.location.reload();
+  }
+
+  function handleDeleted() {
+    setSelected(null);
+    loadContainers();
+  }
+
+  const selectedContainer = containers.find(c => c.id === selected);
+
+  return (
+    <div className="flex h-screen overflow-hidden">
+      {/* Sidebar */}
+      <div className="w-52 flex-shrink-0 bg-gray-800 border-r border-gray-700 flex flex-col">
+        <div className="px-4 py-3 border-b border-gray-700 flex items-center gap-2">
+          <img src="/terraria-icon.png" alt="" className="w-5 h-5 rounded" />
+          <span className="text-sm font-semibold text-gray-200">Terraria Server GUI</span>
+        </div>
+
+        <div className="flex-1 overflow-y-auto py-1">
+          {containers.length === 0 ? (
+            <p className="text-xs text-gray-600 px-4 py-3">No servers found</p>
+          ) : (
+            containers.map(c => (
+              <button
+                key={c.id}
+                onClick={() => setSelected(c.id)}
+                className={`w-full text-left px-4 py-3 transition ${
+                  selected === c.id
+                    ? 'bg-gray-700 text-white'
+                    : 'text-gray-400 hover:text-gray-200'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <StatusDot state={c.state} />
+                  <span className="text-sm truncate">{c.name}</span>
+                </div>
+                <div className="text-xs text-gray-600 mt-0.5 pl-4">{c.type}</div>
+              </button>
+            ))
+          )}
+        </div>
+
+        <div className="px-4 py-3 border-t border-gray-700 flex flex-col gap-2">
+          <button
+            onClick={() => setShowCreate(true)}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg py-2 transition font-medium"
+          >
+            + New Server
+          </button>
+          <button onClick={logout} className="text-xs text-gray-600 hover:text-gray-400 transition text-center">
+            Logout
+          </button>
+        </div>
+      </div>
+
+      {/* Main */}
+      <div className="flex-1 p-6 overflow-hidden flex flex-col">
+        {selectedContainer ? (
+          <ServerPanel
+            key={selectedContainer.id}
+            container={selectedContainer}
+            onRefresh={loadContainers}
+            onDeleted={handleDeleted}
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full gap-4 text-gray-600 text-sm">
+            <p>
+              {containers.length === 0
+                ? 'No Terraria containers detected.'
+                : 'Select a server from the sidebar'}
+            </p>
+            {containers.length === 0 && (
+              <button
+                onClick={() => setShowCreate(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg px-4 py-2 transition"
+              >
+                + Create your first server
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {showCreate && (
+        <CreateServerModal
+          onClose={() => setShowCreate(false)}
+          onCreated={() => { loadContainers(); setShowCreate(false); }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── App root ──────────────────────────────────────────────────────────
+
+function App() {
+  const [authed, setAuthed] = useState(!!localStorage.getItem('token'));
+  return authed ? <Dashboard /> : <LoginPage onLogin={() => setAuthed(true)} />;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
