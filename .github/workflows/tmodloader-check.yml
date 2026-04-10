@@ -7,16 +7,6 @@ on:
   push:
 
 jobs:
-  # Keep-alive was Removed. Will need to find some other solution.
-  # keep-alive:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-
-  #     - name: Keepalive
-  #       uses: gautamkrishnar/keepalive-workflow@v1
-
   check:
     runs-on: ubuntu-latest
     strategy:
@@ -26,7 +16,7 @@ jobs:
         type: [ release, prerelease ]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Create json fragment
         uses: 1arp/create-a-file-action@0.4.5
@@ -58,7 +48,7 @@ jobs:
           fi
 
       - name: Write json fragment
-        uses: amochkin/action-json@v1
+        uses: amochkin/action-json@v2
         with:
           file: "${{ matrix.year }}-${{ matrix.type }}.json"
           mode: write
@@ -66,7 +56,7 @@ jobs:
           value: "${{ env.VERSION }}"
 
       - name: Upload json fragment
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: "${{ matrix.year }}-${{ matrix.type }}"
           path: "${{ matrix.year }}-${{ matrix.type }}.json"
@@ -78,7 +68,7 @@ jobs:
       data: ${{ steps.write_output.outputs.data }}
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: output/
 
@@ -87,7 +77,7 @@ jobs:
           jq -sc 'reduce .[] as $item ({}; . * $item)' output/*/*.json > final-data.json
 
       - name: Upload final-data.json
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: final-data
           path: final-data.json
