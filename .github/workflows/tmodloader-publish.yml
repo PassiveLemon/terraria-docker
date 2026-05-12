@@ -16,11 +16,11 @@ on:
         description: 'Release year (ex: 2025)'
         required: true
         type: string
-      type:
-        description: 'Release type (release, prerelease)'
+      prerelease:
+        description: 'Release type (true, false)'
         required: true
-        type: string
-    
+        type: boolean
+
   workflow_call:
     inputs:
       version:
@@ -31,10 +31,10 @@ on:
         description: 'Release year (ex: 2025)'
         required: true
         type: string
-      type:
-        description: 'Release type (release, prerelease)'
+      prerelease:
+        description: 'Release type (true, false)'
         required: true
-        type: string
+        type: boolean
 
 jobs:
   setup-build-push:
@@ -65,7 +65,7 @@ jobs:
 
       - name: Build and push Docker image (Pre-release)
         uses: docker/build-push-action@v7
-        if: ${{ inputs.type == 'prerelease' }}
+        if: ${{ inputs.prerelease == true }}
         with:
           context: ./tmodloader
           push: true
@@ -83,7 +83,7 @@ jobs:
 
       - name: Build and push Docker image (Release)
         uses: docker/build-push-action@v7
-        if: ${{ inputs.type == 'release' }}
+        if: ${{ inputs.prerelease == false }}
         with:
           context: ./tmodloader
           push: true
