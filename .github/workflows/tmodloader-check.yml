@@ -1,4 +1,4 @@
-name: (tModLoader) Check for new releases
+name: (tModLoader) Get new releases
 
 on:
   workflow_dispatch:
@@ -9,58 +9,64 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
-    continue-on-error: true
     strategy:
       max-parallel: 1
+      fail-fast: false
       matrix:
         year: [ 2025, 2026 ]
-        type: [ release, prerelease ]
+        prerelease: [ true, false ]
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Create json fragment
-        uses: 1arp/create-a-file-action@0.4.5
-        with:
-          file: "${{ matrix.year }}-${{ matrix.type }}.json"
-          content: "{}"
+      - name: Get releases
+        run: |
+          curl -s https://api.github.com/repos/tModLoader/tModLoader/releases > output.txt
+          echo CHECK_VER="$(
+            jq -r \
+              --arg YEAR "${{ matrix.year }}" \
+              --argjson PRE "${{ matrix.prerelease }}" \
+              '[.[]
+                | select(.tag_name | contains($YEAR))
+                | select(.prerelease == $PRE)
+              ]
+              | max_by(.published_at)?
+              | .tag_name
+              | sub("^v";"")
+              // ""' \
+              output.txt
+          )" >> "$GITHUB_ENV"
 
-      - name: Get releases (${{ matrix.year }} ${{ matrix.type }})
-        id: get_releases
+      - name: Check release
         run: |
           YEAR="${{ matrix.year }}"
-          TYPE="${{ matrix.type }}"
+          PRE="${{ matrix.prerelease }}"
+          VERSION=${{ env.CHECK_VER }}
+          if [ -n "$VERSION" ]; then
+            UPSTREAM=$(curl -s "https://hub.docker.com/v2/repositories/passivelemon/terraria-docker/tags/tmodloader-${VERSION}")
 
-          curl -s https://api.github.com/repos/tModLoader/tModLoader/releases > output.txt
-          if [ "$TYPE" == "prerelease" ]; then
-            VERSION=$(jq -r '[.[] | select(.tag_name | contains("'"${YEAR}"'")) | select(.prerelease == true)] | max_by(.published_at) | .tag_name | sub("^v";"")' output.txt)
+            if echo "$UPSTREAM" | jq -e ".digest" > /dev/null; then
+              echo "$VERSION is already published." >> "$GITHUB_STEP_SUMMARY"
+              VERSION=false
+            else
+              echo "$VERSION is not already published." >> "$GITHUB_STEP_SUMMARY"
+            fi
           else
-            VERSION=$(jq -r '[.[] | select(.tag_name | contains("'"${YEAR}"'")) | select(.prerelease == false)] | max_by(.published_at) | .tag_name | sub("^v";"")' output.txt)
+            echo "A $YEAR (pre: $PRE) version does not exist." >> "$GITHUB_STEP_SUMMARY"
+            VERSION=false
           fi
 
-          UPSTREAM=$(curl -s "https://hub.docker.com/v2/repositories/passivelemon/terraria-docker/tags/tmodloader-${VERSION}")
-
-          if echo "$UPSTREAM" | jq -e ".digest" > /dev/null; then
-            echo "Latest $YEAR $TYPE ($VERSION) is already published." >> "$GITHUB_STEP_SUMMARY"
-            echo "VERSION=false" >> "$GITHUB_ENV"
-          else
-            echo "Latest $YEAR $TYPE ($VERSION) is not already published." >> "$GITHUB_STEP_SUMMARY"
-            echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          fi
-
-      - name: Write json fragment
-        uses: amochkin/action-json@v2
-        with:
-          file: "${{ matrix.year }}-${{ matrix.type }}.json"
-          mode: write
-          property: "year.${{ matrix.year }}.type.${{ matrix.type }}"
-          value: "${{ env.VERSION }}"
+          jq -n \
+            --arg YEAR "$YEAR" \
+            --arg PRE "$PRE" \
+            --arg VERSION "$VERSION" \
+            '{"year": {($YEAR): {"prerelease": {($PRE): $VERSION}}}}' > "${YEAR}-${PRE}.json"
 
       - name: Upload json fragment
         uses: actions/upload-artifact@v7
         with:
-          name: "${{ matrix.year }}-${{ matrix.type }}"
-          path: "${{ matrix.year }}-${{ matrix.type }}.json"
+          name: "${{ matrix.year }}-${{ matrix.prerelease }}"
+          path: "${{ matrix.year }}-${{ matrix.prerelease }}.json"
 
   data_handler:
     needs: check
@@ -107,12 +113,11 @@ jobs:
       fail-fast: false
       matrix:
         year: [ 2025, 2026 ]
-        type: [ release, prerelease ]
-    uses: PassiveLemon/terraria-docker/.github/workflows/tmodloader-publish.yml@master
-    # uses: ./.github/workflows/tmodloader-publish.yml # for local testing
+        prerelease: [ true, false ]
+    uses: ./.github/workflows/tmodloader-publish.yml
     secrets: inherit
     with:
-      version: ${{ fromJson(needs.data_handler.outputs.data).year[matrix.year].type[matrix.type] }}
+      version: ${{ fromJson(needs.data_handler.outputs.data).year[matrix.year].prerelease[matrix.prerelease] }}
       year: ${{ matrix.year }}
-      type: ${{ matrix.type }}
+      prerelease: ${{ matrix.prerelease }}
 
