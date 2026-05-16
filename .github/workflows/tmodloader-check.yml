@@ -10,7 +10,6 @@ jobs:
   check:
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 1
       fail-fast: false
       matrix:
         year: [ 2025, 2026 ]
