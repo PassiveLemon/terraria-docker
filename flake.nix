@@ -30,8 +30,8 @@
       };
       packages = let
         build = lib.getExe self'.packages.build;
-        tVersion = "1.4.5.5";
-        tmlVersion = "2025.12.3.1";
+        tVersion = "1.4.5.6";
+        tmlVersion = "2026.04.3.0";
         # lib.replaceString doesn't exist?
         tVersionTrim = lib.replaceStrings [ "." ] [ "" ] tVersion;
       in {
@@ -47,7 +47,6 @@
             docker build ${./tmodloader} -t test-tmodloader \
               --build-arg TMLVERSION=${tmlVersion}
           '';
-          meta.mainProgram = "build";
         };
         test = pkgs.writeShellApplication {
           name = "test-container";
@@ -59,11 +58,10 @@
         };
         trivy = pkgs.writeShellApplication {
           name = "trivy-image";
-          runtimeInputs = with pkgs; [ docker trivy ];
-          # Need to supply the image name manually
+          runtimeInputs = with pkgs; [ trivy ];
           text = ''
             ${build}
-            trivy image "$1"
+            trivy image "test-$(basename "$PWD")"
           '';
         };
       };
