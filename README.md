@@ -49,9 +49,9 @@ Server configuration details on the [Terraria Wiki](https://terraria.wiki.gg/wik
 
 | Variable | Options | Default | Details |
 |:-|:-|:-|:-|
-| `AUTOCREATE` | `1` `2` `3`| `NA` (Vanilla), `2` (TML) | The world size to autocreate if the worldname is not found. |
+| `AUTOCREATE` | `1` `2` `3`| `NA` (Vanilla), `2` (TML) | The world size to autocreate if the worldname is not found. `1` for small, `2` for medium, `3` for large. |
 | `BANLIST` | `string`| `banlist.txt` | The file with the list of banned players. |
-| `DIFFICULTY` | `0` `1` `2` `3` | `0` | The difficulty level to use with autocreate. |
+| `DIFFICULTY` | `0` `1` `2` `3` | `0` | The difficulty level to use with autocreate. `0` for normal, `1` for expert, `2` for master, `3` for journey. |
 | `LANGUAGE` | `en-US` `de-DE` `it-IT` `fr-FR` `es-ES` `ru-RU` `zh-Hans` `pt-BR` `pl-PL` | `en-US` | The language to use. |
 | `MAXPLAYERS` | `integer` | `8` | The maximum amount of players that can be on the server. |
 | `MODPACK` | `string` | `NA` | The modpack to start the server with. This only works with tModLoader. |
@@ -59,7 +59,7 @@ Server configuration details on the [Terraria Wiki](https://terraria.wiki.gg/wik
 | `NPCSTREAM` | `integer 0-60` | `15` | Helps with entity skipping. |
 | `PASSWORD` | `string` | `NA` | The password required to join the server. |
 | `PORT` | `integer` | `7777` | The port to join the server. |
-| `PRIORITY` | `0` `1` `2` `3` `4` `5` | `1` | Server process priority. |
+| `PRIORITY` | `integer 0-5` | `1` | Server process priority. Lower means higher priority. |
 | `SECURE` | `boolean` | `1` | Cheat protection. |
 | `SEED` | `string` | `NA` | The seed to use with autocreate. |
 | `UPNP` | `boolean` | `0` | Automatically forward ports with uPNP. |
@@ -67,6 +67,7 @@ Server configuration details on the [Terraria Wiki](https://terraria.wiki.gg/wik
 
 #### Journey Mode
 All Journey Mode variables have the same options. The default is `2`.
+`0` for no-one, `1` for host only, `2` for everyone.
 
 | Variable | Options | Default |
 |:-|:-|:-|
