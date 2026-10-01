@@ -3,6 +3,7 @@
 set -e
 
 echo "Terraria version: $VERSION"
+echo "Arch: $ARCH"
 
 # Run the variables script to check and process server variables
 # shellcheck source=./variables.sh
@@ -37,7 +38,11 @@ echo "Starting server..."
 if [ ! -p "$PIPE" ]; then
   mkfifo $PIPE
 fi
-tmux new-session -d "/opt/terraria/server/TerrariaServer -config /opt/terraria/server/serverconfig.txt | tee $PIPE"
+CMD="/opt/terraria/server/TerrariaServer"
+if [ "$ARCH" = "arm64" ]; then
+  CMD="mono --server /opt/terraria/server/TerrariaServer.exe"
+fi
+tmux new-session -d "$CMD -config /opt/terraria/server/serverconfig.txt | tee $PIPE"
 
 # Sometimes the server doesn't start immediately and hangs. This basically just pokes it into starting.
 inject "help"

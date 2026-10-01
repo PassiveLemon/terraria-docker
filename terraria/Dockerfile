@@ -8,17 +8,25 @@ RUN mkdir -p /opt/terraria/server/ &&\
 WORKDIR /opt/terraria/server/
 
 ARG TVERSIONTRIM
+ARG TARGETARCH
+
 RUN curl -Lo ./Terraria.zip https://terraria.org/api/download/pc-dedicated-server/terraria-server-${TVERSIONTRIM}.zip &&\
     unzip -jo ./Terraria.zip "${TVERSIONTRIM}/Linux/*" &&\
     rm ./Terraria.zip
 
-RUN chmod +x ./TerrariaServer*
+RUN if [ "$TARGETARCH" = "arm64" ]; then \
+        rm ./mscorlib.dll \
+            ./mono*config \
+            ./Mono*.dll \
+            ./System*.dll; \
+    fi &&\
+    chmod +x ./TerrariaServer*
 
 
 ## Main
 FROM docker.io/debian:latest
 RUN apt-get update -y &&\
-    apt-get install -y tzdata bash gosu procps libicu-dev tmux
+    apt-get install -y tzdata bash gosu procps libicu-dev tmux mono-runtime
 
 RUN mkdir -p /opt/terraria/config/Worlds &&\
     chmod -R 775 /opt/terraria/
@@ -36,7 +44,9 @@ ENV PUID="1000"
 ENV PGID="1000"
 
 ARG TVERSION
+ARG TARGETARCH
 ENV VERSION=$TVERSION
+ENV ARCH=$TARGETARCH
 
 ENV SERVERCONFIG="0"
 
