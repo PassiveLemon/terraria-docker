@@ -12,13 +12,20 @@ RUN curl -Lo ./Terraria.zip https://terraria.org/api/download/pc-dedicated-serve
     unzip -jo ./Terraria.zip "${TVERSIONTRIM}/Linux/*" &&\
     rm ./Terraria.zip
 
-RUN chmod +x ./TerrariaServer*
+# Use the system Mono, allowing us to use Alpine
+# https://github.com/Pathoschild/SMAPI/issues/414
+RUN rm \
+        ./monoconfig \
+        ./monomachineconfig \
+        ./mscorlib.dll \
+        ./Mono*.dll \
+        ./System*.dll; \
+    chmod +x ./TerrariaServer*
 
 
 ## Main
-FROM docker.io/debian:latest
-RUN apt-get update -y &&\
-    apt-get install -y tzdata bash gosu procps libicu-dev tmux
+FROM docker.io/alpine:latest
+RUN apk add --no-cache tzdata bash su-exec grep icu-dev tmux mono
 
 RUN mkdir -p /opt/terraria/config/Worlds &&\
     chmod -R 775 /opt/terraria/

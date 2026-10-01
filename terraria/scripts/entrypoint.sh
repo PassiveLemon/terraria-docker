@@ -4,16 +4,16 @@ set -e
 
 # Create terraria user for rootless operation
 if ! getent group terraria > /dev/null 2>&1; then
-  groupadd -g "$PGID" terraria
+  addgroup -g "$PGID" terraria
 fi
 if ! getent passwd terraria > /dev/null 2>&1; then
-  useradd -u "$PUID" -g terraria -s /bin/sh -m terraria
+  adduser -u "$PUID" -G terraria -s /bin/sh -D terraria
 fi
 
 mkdir -p /opt/terraria/config/Worlds/
 
-chown -R terraria:terraria /opt/terraria
+chown -R terraria:terraria /opt/terraria/
 chmod -R 775 /opt/terraria/
 
-exec gosu terraria:terraria "/opt/terraria/server.sh"
+exec su-exec terraria:terraria "/opt/terraria/server.sh"
 
