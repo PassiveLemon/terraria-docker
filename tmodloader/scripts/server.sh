@@ -20,10 +20,10 @@ fi
 # shellcheck source=./variables.sh
 source /opt/terraria/variables.sh
 
-pipe=/tmp/pipe.pipe
+PIPE=/tmp/pipe.pipe
 
 # Shutdown function to send the notice, signal, and ensure its shutdown before exiting
-function shutdown () {
+function shutdown() {
   echo "Stopping server..."
   inject "say Shutting down server in 5 seconds..."
   sleep 5s
@@ -33,7 +33,7 @@ function shutdown () {
     sleep .5
   done
   echo "Server stopped."
-  rm $pipe
+  rm $PIPE
 }
 
 trap shutdown TERM INT
@@ -46,15 +46,15 @@ cp /opt/terraria/config/serverconfig.txt /opt/terraria/server/
 
 # Start terraria in tmux session with a write pipe to output to docker logs
 echo "Starting server with modpack ${MODPACK}..."
-if [ ! -p "$pipe" ]; then
-  mkfifo $pipe
+if [ ! -p "$PIPE" ]; then
+  mkfifo $PIPE
 fi
-tmux new-session -d "/opt/terraria/server/start-tModLoaderServer.sh -tmlsavedirectory /opt/terraria/config -config /opt/terraria/server/serverconfig.txt | tee $pipe"
+tmux new-session -d "/opt/terraria/server/start-tModLoaderServer.sh -tmlsavedirectory /opt/terraria/config -config /opt/terraria/server/serverconfig.txt | tee $PIPE"
 
 # Sometimes the server doesn't start immediately and hangs. This basically just pokes it into starting.
 inject "help"
 
 # Read out pipe to display in docker logs
-cat $pipe &
+cat $PIPE &
 wait ${!}
 

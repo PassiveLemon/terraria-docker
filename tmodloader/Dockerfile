@@ -10,23 +10,24 @@ WORKDIR /opt/terraria/server/
 ARG TMLVERSION
 RUN curl -Lo ./tModLoader.zip https://github.com/tModLoader/tModLoader/releases/download/v${TMLVERSION}/tModLoader.zip &&\
     unzip -o ./tModLoader.zip &&\
-    rm ./tModLoader.zip &&\
-    rm ./serverconfig.txt &&\
-    chmod +x ./start-tModLoaderServer.sh
+    rm ./tModLoader.zip ./serverconfig.txt
+
+RUN chmod +x ./start-tModLoaderServer.sh
 
 
 ## Main
 FROM docker.io/alpine:latest
-RUN apk add --no-cache tzdata netcat-openbsd bash su-exec grep icu-dev tmux
+RUN apk add --no-cache tzdata bash su-exec grep icu-dev tmux
 
 RUN mkdir -p /opt/terraria/config/ModPacks &&\
     mkdir -p /opt/terraria/config/Worlds &&\
     chmod -R 775 /opt/terraria/
 
+COPY --chmod=755 scripts/inject.sh /usr/local/bin/inject
+
 COPY --chmod=755 scripts/entrypoint.sh /opt/terraria/
 COPY --chmod=755 scripts/variables.sh /opt/terraria/
 COPY --chmod=755 scripts/server.sh /opt/terraria/
-COPY --chmod=755 scripts/inject.sh /usr/local/bin/inject
 
 COPY --from=prepare /opt/terraria/server/ /opt/terraria/server/
 

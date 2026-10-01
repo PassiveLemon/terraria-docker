@@ -30,8 +30,8 @@
       };
       packages = let
         build = lib.getExe self'.packages.build;
-        tVersion = "1.4.5.6";
-        tmlVersion = "2026.04.3.0";
+        tVersion = "1.4.5.8";
+        tmlVersion = "2026.08.3.0";
         # lib.replaceString doesn't exist?
         tVersionTrim = lib.replaceStrings [ "." ] [ "" ] tVersion;
       in {

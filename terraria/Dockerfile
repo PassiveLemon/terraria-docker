@@ -10,22 +10,24 @@ WORKDIR /opt/terraria/server/
 ARG TVERSIONTRIM
 RUN curl -Lo ./Terraria.zip https://terraria.org/api/download/pc-dedicated-server/terraria-server-${TVERSIONTRIM}.zip &&\
     unzip -jo ./Terraria.zip "${TVERSIONTRIM}/Linux/*" &&\
-    rm ./Terraria.zip &&\
-    chmod +x ./TerrariaServer*
+    rm ./Terraria.zip
+
+RUN chmod +x ./TerrariaServer*
 
 
 ## Main
 FROM docker.io/debian:latest
 RUN apt-get update -y &&\
-    apt-get install -y tzdata netcat-openbsd bash gosu procps libicu-dev tmux
+    apt-get install -y tzdata bash gosu procps libicu-dev tmux
 
 RUN mkdir -p /opt/terraria/config/Worlds &&\
     chmod -R 775 /opt/terraria/
 
+COPY --chmod=755 scripts/inject.sh /usr/local/bin/inject
+
 COPY --chmod=755 scripts/entrypoint.sh /opt/terraria/
 COPY --chmod=755 scripts/variables.sh /opt/terraria/
 COPY --chmod=755 scripts/server.sh /opt/terraria/
-COPY --chmod=755 scripts/inject.sh /usr/local/bin/inject
 
 COPY --from=prepare /opt/terraria/server/ /opt/terraria/server/
 
