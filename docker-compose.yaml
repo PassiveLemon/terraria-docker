@@ -2,7 +2,6 @@ services:
   test-terraria:
     image: test-terraria
     container_name: test-terraria
-    stdin_open: true
     ports:
       - 7777:7777/tcp
     volumes:
@@ -18,7 +17,6 @@ services:
   test-tmodloader:
     image: test-tmodloader
     container_name: test-tmodloader
-    stdin_open: true
     ports:
       - 7778:7777/tcp
     volumes:

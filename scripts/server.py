@@ -133,5 +133,7 @@ def main():
   for line in sys.stdin:
     command(line)
 
+  signal.pause()
+
 main()
 

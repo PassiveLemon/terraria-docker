@@ -242,6 +242,9 @@ You will also need a port. If you didn't change the defaults, it will just be 77
 More info on the [Fandom](https://terraria.fandom.com/wiki/Guide:Setting_up_a_Terraria_server#PF) and at [whatismyip.com/port-forwarding/](https://www.whatismyip.com/port-forwarding/).
 
 # 9. Other
+## Running commands
+First, you must open up the containers stdin. For compose, that is `stdin_open: true` and for run, thats `-i`. Then, you can `docker attach <container name>` to your container and run commands on the Terraria server.
+
 ## Caching dotnet
 If you would like for the container to not attempt to download dotnet every boot, then add a volume flag to your container to `/opt/terraria/server/dotnet/`. Ex: `-v <config_dir>/dotnet_cache`.
 
