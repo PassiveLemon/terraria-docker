@@ -63,6 +63,7 @@ Server configuration details on the [Terraria Wiki](https://terraria.wiki.gg/wik
 | `SECURE` | `boolean` | `1` | Cheat protection. |
 | `SEED` | `string` | `NA` | The seed to use with autocreate. |
 | `UPNP` | `boolean` | `0` | Automatically forward ports with uPNP. |
+| `WORLDEVIL` | `0` `1` `2` | `NA` | The world evil type to use with autocreate. `0` for random, `1` for Corruption, `2` for Crimson. |
 | `WORLDNAME` | `string` | `World` | The name of the world. This determines which world file to load. |
 
 #### Journey Mode
