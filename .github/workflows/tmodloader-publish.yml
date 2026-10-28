@@ -70,7 +70,9 @@ jobs:
           context: ./tmodloader
           push: true
           platforms: linux/amd64
-          build-args: TMLVERSION=${{ inputs.version }}
+          build-args: |
+            VANILLA=false
+            VERSION=${{ inputs.version }}
           tags: |
             passivelemon/terraria-docker:tmodloader-latest-pre
             passivelemon/terraria-docker:tmodloader-${{ inputs.year }}-pre
@@ -88,7 +90,9 @@ jobs:
           context: ./tmodloader
           push: true
           platforms: linux/amd64
-          build-args: TMLVERSION=${{ inputs.version }}
+          build-args: |
+            VANILLA=false
+            VERSION=${{ inputs.version }}
           tags: |
             passivelemon/terraria-docker:tmodloader-latest
             passivelemon/terraria-docker:tmodloader-${{ inputs.year }}

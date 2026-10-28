@@ -12,19 +12,11 @@ on:
         description: 'Terraria version'
         required: true
         type: string
-      version_trim:
-        description: 'Terraria version trimmed'
-        required: true
-        type: string
     
   workflow_call:
     inputs:
       version:
         description: 'Terraria version'
-        required: true
-        type: string
-      version_trim:
-        description: 'Terraria version trimmed'
         required: true
         type: string
 
@@ -61,8 +53,8 @@ jobs:
           push: true
           platforms: linux/amd64
           build-args: |
-            TVERSION=${{ inputs.version }}
-            TVERSIONTRIM=${{ inputs.version_trim }}
+            VANILLA=true
+            VERSION=${{ inputs.version }}
           tags: |
             passivelemon/terraria-docker:latest
             passivelemon/terraria-docker:terraria-latest

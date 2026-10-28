@@ -1,0 +1,33 @@
+services:
+  test-terraria:
+    image: test-terraria
+    container_name: test-terraria
+    stdin_open: true
+    ports:
+      - 7777:7777/tcp
+    volumes:
+      - ./test/terraria/:/opt/terraria/config/:rw
+    environment:
+      TZ: "America/New_York"
+      PUID: "${PUID}"
+      PGID: "${PGID}"
+      WORLDEVIL: "2"
+      AUTOCREATE: "1"
+      DIFFICULTY: "3"
+
+  test-tmodloader:
+    image: test-tmodloader
+    container_name: test-tmodloader
+    stdin_open: true
+    ports:
+      - 7778:7777/tcp
+    volumes:
+      - ./test/tmodloader/:/opt/terraria/config/:rw
+      - ./test/tmodloader/logs/:/opt/terraria/server/tModLoader-Logs/:rw
+      - ./test/tmodloader/dotnet-cache/:/opt/terraria/server/dotnet/:rw
+    environment:
+      TZ: "America/New_York"
+      PUID: "${PUID}"
+      PGID: "${PGID}"
+      MODPACK: "testpack"
+

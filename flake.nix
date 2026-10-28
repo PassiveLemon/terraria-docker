@@ -32,20 +32,19 @@
         build = lib.getExe self'.packages.build;
         tVersion = "1.4.5.8";
         tmlVersion = "2026.08.3.0";
-        # lib.replaceString doesn't exist?
-        tVersionTrim = lib.replaceStrings [ "." ] [ "" ] tVersion;
       in {
         default = self'.packages.test;
         build = pkgs.writeShellApplication {
           name = "build";
           runtimeInputs = with pkgs; [ docker ];
           text = ''
-            docker build ${./terraria} -t test-terraria \
-              --build-arg TVERSION=${tVersion} \
-              --build-arg TVERSIONTRIM=${tVersionTrim}
+            docker build ${./.} -t test-terraria \
+              --build-arg VANILLA="true" \
+              --build-arg VERSION="${tVersion}"
 
-            docker build ${./tmodloader} -t test-tmodloader \
-              --build-arg TMLVERSION=${tmlVersion}
+            docker build ${./.} -t test-tmodloader \
+              --build-arg VANILLA="false" \
+              --build-arg VERSION="${tmlVersion}"
           '';
         };
         test = pkgs.writeShellApplication {
@@ -53,7 +52,7 @@
           runtimeInputs = with pkgs; [ docker ];
           text = ''
             ${build}
-            docker compose up
+            docker compose up "test-$1"
           '';
         };
         trivy = pkgs.writeShellApplication {
@@ -61,7 +60,7 @@
           runtimeInputs = with pkgs; [ trivy ];
           text = ''
             ${build}
-            trivy image "test-$(basename "$PWD")"
+            trivy image "test-$1"
           '';
         };
       };
